@@ -2,6 +2,7 @@
 This is a backend project for Immigration tellered to digitise Passport making process.
 
 Digital_Passport_Backend/src/
+
     │
     ├── config/
     │   ├── db.mjs                # Handles MongoDB connection using Mongoose
