@@ -61,3 +61,61 @@ Not:
     main (protected) ← Only I merge here
     └── dev (protected) ← Your PR destination
     └── feature/your-clear-task-name ← Your temporary branch
+
+Coding style
+    variables:  camel case
+    all variables must be at the top of ever controller inside try catch bloc
+    following top dow approach
+    eng. 
+    try{
+        //all variables here
+
+    }catch {
+        console.error("Error creating provider profile:", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+`
+    }
+
+    when success return the block as follow 
+    {
+        satus: "success",
+        message "message body"
+    }
+
+    follow this example:
+    //logic to change the password
+export const changePassword = async (req, res) => {
+     try {
+            const {currentPassword,newPassword} = req.validatedData;
+            const userId = req.user._id;
+
+            const findUser = await User.findById(userId);
+            if(!findUser) {
+                  return res.status(404).json({
+                        message: "No user found"
+                  });
+            }
+
+            const isMash = comparePassword(currentPassword, findUser.password);
+            if(!isMash){
+                  return res.status(400).json({
+                        message: "Currrent password in incorrect"
+                  })
+            }
+
+            const hashedPassword = hashPassword(newPassword);
+            findUser.password = hashedPassword;
+            await findUser.save();
+
+            return res.status(200).json({
+                  message: "Password changed successfully"
+            });
+      
+     } catch (error) {
+            console.log(`Fiald to change the password: ${error}`);
+            return res.status(500).json({
+                  message: "Ineternal server error"
+            });
+     }
+};
+
