@@ -18,7 +18,7 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Create server for Socket.IO
+// server for Socket.IO
 const server = createServer(app);
 
 // Initialize Socket.IO
@@ -29,12 +29,12 @@ const io = new Server(server, {
     }
 });
 
-// Connect to MongoDB (UNCOMMENT THIS!)
+
 connectDB();
 
 // ===== MIDDLEWARE IN CORRECT ORDER =====
 
-// 1. General middleware first
+// 1. General middleware 
 app.use(express.json()); // JSON parsing for all routes
 app.use(cookieParser());
 app.use(cors({
@@ -46,7 +46,7 @@ app.use(cors({
 // 2. Socket middleware
 app.use(socketMiddleware(io));
 
-// 3. Webhook route (needs raw body)
+// 3. Webhook route (needs raw body) for pay changu
 app.use("/api/payments/webhook", express.raw({ type: "application/json" }), paymentRoutes);
 
 // 4. Regular routes
@@ -57,10 +57,10 @@ app.use('/api/notifications', notificationRoutes);
 
 // 5. Health check
 app.get('/', (req, res) => {
-  res.send('Awakeya Backend API is running...');
+  res.send('API is running...');
 });
 
-// 6. Error handler (ALWAYS LAST)
+// 6. Error handler 
 app.use(errorHandler);
 
 // Initialize sockets
