@@ -43,3 +43,13 @@ Digital_Passport_Backend/src/
     ├── package.json             # Project dependencies & scripts
     ├── index.mjs / server.js    # Main entry point for the server
     └── README.md                # Documentation for the project
+
+Environmental variables
+
+    PORT=5000
+    MONGO_URI=mongodb://localhost:27017/
+    MONGO_URI_CAMPUSS=mongodb://localhost:27017/imigration
+    MONGO_URL_CLASTER=""
+    SUPER_ADMIN_EMAIL=awakeya@gmail.com
+    SUPER_ADMIN_PASSWORD=12345678
+    SUPER_ADMIN_ROLE=superadmin
