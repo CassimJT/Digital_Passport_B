@@ -55,7 +55,8 @@ Environmental variables
     SUPER_ADMIN_ROLE=superadmin
 
 Not: 
-    Hey team!  Just a quick update on our workflow: Before starting any new task, please make sure you have MongoDB Compass installed for local testing. When you begin work, always create a new branch from the dev branch with a clear name like "feature/login-page" or "fix/payment-bug". Once you finish and your PR gets approved, I'll handle merging it into dev and then to main - you can just delete your feature branch afterwards. This keeps everything organized and makes sure we're all working smoothly together! Thanks everyone! 
+
+    Hey team!  Just a quick update on our workflow: Before starting any new task, please make sure you have MongoDB Compass installed for local testing. When you begin work, always create a new branch from the dev         branch with a clear name like "feature/login-page" or "fix/payment-bug". Once you finish and your PR gets approved, I'll handle merging it into dev and then to main - you can just delete your feature branch            afterwards. This keeps everything organized and makes sure we're all working smoothly together! Thanks everyone! 
     
     Branch structure
     main (protected) ← Only I merge here
@@ -63,6 +64,7 @@ Not:
     └── feature/your-clear-task-name ← Your temporary branch
 
 Coding style
+
     variables:  camel case
     all variables must be at the top of ever controller inside try catch bloc
     following top dow approach
@@ -84,7 +86,8 @@ Coding style
 
     follow this example:
     //logic to change the password
-export const changePassword = async (req, res) => {
+
+    export const changePassword = async (req, res) => {
      try {
             const {currentPassword,newPassword} = req.validatedData;
             const userId = req.user._id;
