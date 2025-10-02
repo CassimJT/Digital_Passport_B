@@ -3,6 +3,9 @@ import { upload } from './multerConfig.mjs';
 
 // USER VALIDATION
 export const registerUserSchema = Joi.object({
+  nationalID: Joi.string().min(4).max(4).required(),
+  password: Joi.string().min(8).required(),
+  confirmPassword: Joi.string().min(8).required()
 
 });
 //EMAIL VALIDATION
