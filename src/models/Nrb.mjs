@@ -86,6 +86,12 @@ const nrbSchema = new Schema({
     },
 
 
+    nationalid: {
+        type: String,
+        required: true,
+        unique: true,
+        trim: true, 
+    },
 
 });
 
