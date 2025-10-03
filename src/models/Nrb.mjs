@@ -92,7 +92,6 @@ const nrbSchema = new Schema({
         trim: true,
     }
 
- 
 });
 
 export default model("NRB", nrbSchema);
