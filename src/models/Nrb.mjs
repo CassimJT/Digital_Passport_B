@@ -90,19 +90,9 @@ const nrbSchema = new Schema({
         required: true,
         unique: true,
         trim: true,
-    },
+    }
 
-<<<<<<< HEAD
-
-=======
->>>>>>> models/nrb-model
-    nationalid: {
-        type: String,
-        required: true,
-        unique: true,
-        trim: true, 
-    },
-
+ 
 });
 
 export default model("NRB", nrbSchema);
