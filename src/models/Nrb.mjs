@@ -92,6 +92,12 @@ const nrbSchema = new Schema({
         trim: true,
     },
 
+    nationalid: {
+        type: String,
+        required: true,
+        unique: true,
+        trim: true, 
+    },
 
 });
 
