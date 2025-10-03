@@ -16,6 +16,9 @@ const {
  * @returns {String} token
  */
 export const generateAccessToken = (user) => {
+  const accessPayload = {userID: user.id, userEmail: user.email, userRole: user.role};
+  const accessToken = jwt.sign(accessPayload,JWT_ACCESS_SECRET,{expiresIn: JWT_ACCESS_EXPIRATION})
+  return (accessToken);
   
 };
 
@@ -25,9 +28,9 @@ export const generateAccessToken = (user) => {
  * @returns {String} token
  */ 
 export const generateRefreshToken = (user) => {
-  return jwt.sign(
-    
-  );
+  const refreshPayload = {useID: user.id, userEmail: user.email, userRole: user.role}
+  const refreshToken = jwt.sign(refreshPayload,JWT_REFRESH_SECRET,{expiresIn:JWT_REFRESH_EXPIRATION})
+  return (refreshToken);
 };
 
 /**
@@ -36,6 +39,7 @@ export const generateRefreshToken = (user) => {
  * @returns {Object|null}
  */
 export const verifyAccessToken = (token) => {
+  return jwt.verify(token,JWT_ACCESS_SECRET) ;
   
 };
 
@@ -45,5 +49,6 @@ export const verifyAccessToken = (token) => {
  * @returns {Object|null}
  */
 export const verifyRefreshToken = (token) => {
+  return jwt.verify(token,JWT_REFRESH_SECRET)
   
 };
