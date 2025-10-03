@@ -84,7 +84,13 @@ const nrbSchema = new Schema({
         traditionalauthority: {type: String,required: true,trim: true,},
         village: {type: String,required: true,trim: true,},
     },
-
+    //the national id number
+    nationalid: {
+        type: String,
+        required: true,
+        unique: true,
+        trim: true,
+    },
 
 
 });
