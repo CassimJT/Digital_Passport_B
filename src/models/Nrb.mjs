@@ -1,6 +1,7 @@
-import pkg from 'joi';
-const { date, object } = pkg;
+//getMaxListeners//import pkg from 'joi';
+//const { date, object } = pkg;
 import mongoose from "mongoose";
+import { getMaxListeners } from "nodemailer/lib/xoauth2";
 
 const { Schema, model, Types } = mongoose;
 
@@ -19,7 +20,7 @@ const nrbSchema = new Schema({
     },
     
     dateOfBirth: {
-        type: date,
+        type: Date,
         required: true,
         trim: true,
     },

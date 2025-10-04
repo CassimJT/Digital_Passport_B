@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import { hashPassword } from '../utils/helpers.mjs';
-import Nrb from './Nrb.mjs';
-import { object } from 'joi';
+import Nrb from "../models/Nrb.mjs";
+//import { object } from 'joi';
 
   const { Schema, model } = mongoose;
 
@@ -17,7 +17,7 @@ import { object } from 'joi';
     
     nationalId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Nrb',
+      ref: Nrb,
       required: true,
       unique: true,
     },
@@ -28,11 +28,6 @@ import { object } from 'joi';
       minlength: [8, "Password must be atleast 8 characters"],
     },
 
-    NRB: {
-      type: object,
-      ref: 'Nrb',
-      required: true,
-    },
     
     createdAt: {
       type: Date,
