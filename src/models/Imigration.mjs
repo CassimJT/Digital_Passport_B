@@ -1,5 +1,5 @@
-import { required } from "joi";
 import mongoose from "mongoose";
+//import { interpolators } from "sharp";
 const { Schema, model, Types } = mongoose;
 
 const imigration = new Schema({
@@ -22,36 +22,36 @@ const imigration = new Schema({
         trim: true,
     },
     //Personal information
-    firstName: { 
-        type: String, 
-        required: true, 
-        trim: true,
-    },
-    surnName: { 
-        type: String, 
+    nationalId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: Nrb,
         required: true,
-        trim: true,
-     },
-    middleName: { 
-        type: String, 
-        required: true, 
-        trim: true 
+        unique: true,
     },
 
-    dateOfBirth: {
-        type: Date,
-        require: true,
-    },
-
-    country: {
-        type: String,
-        required: true,
-        trim: true,
-    },
     occupation: {
         type: String,
         required: false,
         trim: true,
+    },
+
+    height: {
+        type: int,
+        required: true,
+
+    },
+    //Fathers place of Origin
+    placeOfBirth: {
+        district: {type: String,required: true,trim: true,},
+        traditionalauthority: {type: String,required: true,trim: true,},
+        village: {type: String,required: true,trim: true,},
+    },
+
+    //Mother place of Origin
+    mothersPlaceOfBirth: {
+        district: {type: String,required: true,trim: true,},
+        traditionalauthority: {type: String,required: true,trim: true,},
+        village: {type: String,required: true,trim: true,},
     },
 
 
