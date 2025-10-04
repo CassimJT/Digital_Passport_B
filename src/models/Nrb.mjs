@@ -1,4 +1,5 @@
-import { date, required } from "joi";
+import pkg from 'joi';
+const { date, object } = pkg;
 import mongoose from "mongoose";
 
 const { Schema, model, Types } = mongoose;
@@ -12,12 +13,12 @@ const nrbSchema = new Schema({
         unique: true,
     }, 
     
-    secondnationality: {
+    secondNationality: {
         type: String,
         required: false,
     },
     
-    dateofbirth: {
+    dateOfBirth: {
         type: date,
         required: true,
         trim: true,
@@ -31,61 +32,61 @@ const nrbSchema = new Schema({
     },
 
     //homeaddress
-    placeofbirth: {
+    placeOfBirth: {
         district: {type: String,required: true,trim: true,},
         traditionalauthority: {type: String,required: true,trim: true,},
         village: {type: String,required: true,trim: true,},
     },
     
-    firstname: {
+    firstName: {
         type: String,
         required: true,
         trim: true,
     },
     
-    middlename: {
+    middleName: {
         type: String,
         required: false,
         trim: true,
     },
 
-    surname: {
+    surName: {
         type: String,
         required: true,
         trim: true,
     },
     
-    maritalstatus: {
+    maritalStatus: {
         type: String,
         required: true,
         enum:["never married", "married", "divorced", "widowed", "separated", "abandoned"],
         trim: true,
     },
-    colourofeyes: {
+    colourOfEyes: {
         type: String,
         required: true,
         trim: true,
     },
-    mobilephone: {
+    mobilePhone: {
         type: String,
         required: true,
         unique: true,
         trim: true,
     },
-    emailaddress: {
+    emailAddress: {
         type: String,
         required: false,
         unique: true,
         trim: true,
     },
     //Residential address
-    residentialaddress: {
+    residentialAddress: {
         district: {type: String,required: true,trim: true,},
         traditionalauthority: {type: String,required: true,trim: true,},
         village: {type: String,required: true,trim: true,},
     },
     //the national id number
-    nationalid: {
+    nationalId: {
         type: String,
         required: true,
         unique: true,
