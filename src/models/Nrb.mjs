@@ -16,11 +16,7 @@ const nrbSchema = new Schema({
     },
     
     dateOfBirth: {
-<<<<<<< HEAD
         type: Date,
-=======
-        type: date,
->>>>>>> models/payment-model
         required: true,
         trim: true,
     },
