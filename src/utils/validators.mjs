@@ -60,9 +60,13 @@ export const paymentSchema = Joi.object({
 
 // NOTIFICATION VALIDATION
 export const notificationSchema = Joi.object({
-  recipient: Joi.string().email().required(),
-  type: Joi.string().valid('payment','documentUpdate','alert'),
-  message: Joi.string().min(5).max(500).required()
+  user: Joi.string().email().required(),
+  type: Joi.string().valid("info", "error", "success"),
+  title: Joi.string().required(),
+  read: Joi.boolean(),
+  link: Joi.string(),
+  message: Joi.string().min(5).max(500).required(),
+  createdAt: Joi.date().required()
   
 });
 
