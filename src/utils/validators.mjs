@@ -76,3 +76,8 @@ export const uploadValidationSchema = Joi.object({
   type: Joi.string().valid('id_card', 'license', 'degree', 'certificate', 'other').required()
 })
 
+//VALIDATE FORM (this is the form that is saved to imigration)
+export const validateForm = Joi.object({
+
+})
+

@@ -82,7 +82,7 @@ export const hasRole = (user, roles = []) => {
 export const hashPassword = async (password) => {
   try {
     const hashedPassword = await bcrypt.hash(password,saltRounds)
-    return hashPassword;
+    return hashedPassword;
   } catch (error) {
     return {status:500, message:"error while hashing"}
   }
