@@ -3,13 +3,14 @@ import { upload } from './multerConfig.mjs';
 
 // USER VALIDATION
 export const registerUserSchema = Joi.object({
-  firstname: Joi.string().required(),
-  lastname: Joi.string().required(),
-  maidenName: Joi.string(),
-  role: Joi.string().valid('client', 'admin','superadmin').required(),
   nationalID: Joi.string().required(),
   password: Joi.string().pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[a-zA-Z\d]){8,}$/).required(),
-  confirmPassword: Joi.string().pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[a-zA-Z\d]){8,}$/).required(),
+  residentialAddress:{
+    district: Joi.string().required(),
+    traditionalAuthority: Joi.string().required(),
+    village: Joi.string().required()
+  },
+  createdAt:Joi.date()
 
 
 });
@@ -32,7 +33,6 @@ export const validateChangePassword = Joi.object({
 //LOG IN VALIDATION
 export const loginValidation = Joi.object({
   nationalID: Joi.string().min(4).max(4).required(),
-  phone: Joi.string().min(10).max(10),
   password: Joi.string().pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[a-zA-Z\d]){8,}$/).required()
   
 })
@@ -46,9 +46,14 @@ export const loginSchema = Joi.object({
 
 // PAYMENT VALIDATION
 export const paymentSchema = Joi.object({
+  payer: Joi.string().required(),
   amount: Joi.number().precision(2).required(),
   currency: Joi.string().valid('MWK').default('MWK').required(),
-  method: Joi.string().valid('mpamba','airtemoney','fdh','nbm')
+  paymentMethod: Joi.string().valid('bank card', 'mobile money', 'bank transfer'),
+  transactionid: Joi.string().required(),
+  description: Joi.string().required(),
+  status: Joi.string().required(),
+  timestamps: Joi.boolean().required()
   
 });
 
