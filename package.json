@@ -38,6 +38,7 @@
     "sharp": "^0.34.4",
     "socket.io": "^4.8.1",
     "stripe": "^18.5.0",
+    "twilio": "^5.10.2",
     "yup": "^1.7.1"
   },
   "type": "module",
