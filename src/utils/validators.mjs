@@ -21,13 +21,17 @@ export const validateEmail = Joi.object({
 })
 //VALIDATE PASSWORD
 export const validatePassword = Joi.object({
+  userID: Joi.string(),
   password: Joi.string().pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[a-zA-Z\d]){8,}$/).required()
 
 
 })
 //VALIDATE CHANGE PASSWORD
 export const validateChangePassword = Joi.object({
-  changePassword: Joi.string().pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[a-zA-Z\d]){8,}$/).required()
+  userID: Joi.string(),
+  currentPassword: Joi.string().pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[a-zA-Z\d]){8,}$/).required(),
+  newPassword: Joi.string().pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[a-zA-Z\d]){8,}$/).required(),
+  confirmNewPassword: Joi.string().pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[a-zA-Z\d]){8,}$/).required()
  
 })
 //LOG IN VALIDATION
