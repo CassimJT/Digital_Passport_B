@@ -69,11 +69,11 @@ export const logoutUser = async (req,res)=> {
     try {
         console.log(`User ${req.user._id} logged out successfully`);
 
-    return res.status(200).json({
-      status: 'success',
-      data: {
-        redirectUrl: '/login', // Redirect to login page
-      }
+        return res.status(200).json({
+            status: 'success',
+            data: {
+            redirectUrl: '/login', // Redirect to login page
+        }
     }
     )
     } catch (error) {
@@ -97,7 +97,7 @@ export const refreshToken = async (req,res, next)=> {
 
         })
     } catch (error) {
-        
+        next(error)
     }
 
 }
@@ -120,7 +120,8 @@ export const requestPasswordReset = async (req,res, next)=> {
 //logic to reset password
 export const resetPassword = async (req,res,next)=> {
     try {
-        const {userID, password} = req.validatedData
+        const userID = req.user._id
+        const {password} = req.validatedData
         const resetHashedPassword = hashPassword(password)
         const updateUser = await User.findByIdAndUpdate(userID,{$set:{password: resetHashedPassword }, new: true})
         if(!updateUser){
@@ -134,7 +135,8 @@ export const resetPassword = async (req,res,next)=> {
 //logic to change passwod
 export const changePassword = async (req,res)=> {
     try {
-        const {userID, currentPassword, newPassword, confirmNewPassword} = req.validatedData
+        const userID = req.user._id
+        const { currentPassword, newPassword, confirmNewPassword} = req.validatedData
         const user = await User.findOne(userID)
         const changePasswordHashed = hashPassword(newPassword)
         if(!user || !(comparePassword(currentPassword,user,password)) || !(comparePassword(confirmNewPassword,changePasswordHashed))){
