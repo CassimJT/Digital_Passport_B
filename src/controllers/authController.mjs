@@ -1,6 +1,10 @@
 import User from "../models/User.mjs"
 import Nrb from "../models/Nrb.mjs"
-import {generateRandomCode, hashPassword} from "../utils/helpers.mjs"
+import { generateAccessToken, generateRefreshToken } from "../utils/jwt.mjs"
+import {generateRandomCode, 
+        hashPassword,
+        comparePassword 
+    } from "../utils/helpers.mjs"
 
 // this is where the otp details wil be temporarily stored(use redis or mongodb in production)
 const otpStore = new Map()
@@ -8,86 +12,25 @@ const otpStore = new Map()
 //logic to regester user
 export const registerUser = async (req,res, next)=> {
     try {
-        const {residentialAddress,createdAt,password} = req.validatedData
-        const hashedPassword = hashPassword(password)
-        const {nationalID} = req.validatedData
-        nrbValidatedData =  await Nrb.findById(nationalID).select(`
-            firstName 
-            middleName 
-            surName
-            emailAddress 
-            mobilePhone 
-            colourOfEyes 
-            maritalStatus  
-            placeOfBirth 
-            sex 
-            dateOfBirth 
-            secondNationality 
-            nationality
-        `)
+        const data = req.validatedData
+        const hashedPassword = hashPassword(data.password)
+        nrbValidatedData =  await Nrb.findById(data.nationalID)
         if(!nrbValidatedData){
             return res.status(404).json("NRB data for the user not availbale")
         }   
 
-        // destructing the NRB object to get the required fields
-        const {
-            firstName ,
-            middleName = '' ,
-            surName,
-            emailAddress, 
-            mobilePhone, 
-            colourOfEyes, 
-            maritalStatus,  
-            placeOfBirth,
-            sex, 
-            dateOfBirth,
-            secondNationality, 
-            nationality
-        } = nrbValidatedData
+        const user = new User({
+            residentialaddress: data.residentialAddress,
+            nationalId: data.nationalID,
+            password: hashedPassword
+        })
 
-        // checking uf the applicnt already has an account with immigration`s digital passport system
+        const saveApplicant = await user.save()
+        if (!saveApplicant){
+                
 
-        const existingUser =  await User.findOne({nationalID})
-        if (existingUser){
-            return res.status(400).json({status: "applicant already has an account"})
         }
-
-        const otp = generateRandomCode();
-        otpStore.set(nationalID,{otp,data:{
-            firstName ,
-            middleName ,
-            surName,
-            hashedPassword,
-            createdAt,
-            emailAddress, 
-            mobilePhone, 
-            colourOfEyes, 
-            maritalStatus,  
-            placeOfBirth,
-            residentialAddress,
-            sex, 
-            dateOfBirth,
-            secondNationality, 
-            nationality
-        }})
-
-        // creating name
-        // const name = `${firstName} ${middleName} ${surName}`.trim();
-        // const user = new User({
-        //     name,
-        //     emailAddress, 
-        //     mobilePhone, 
-        //     colourOfEyes, 
-        //     maritalStatus,  
-        //     placeOfBirth,
-        //     sex, 
-        //     dateOfBirth,
-        //     secondNationality, 
-        //     nationality
-        // })
-
-        // const applicantAccountCreation = await user.save()
-         return res.status(200).json({status: "please verity the otp sent "})
+            
 
     } catch (error) {
         next(error)
@@ -95,15 +38,71 @@ export const registerUser = async (req,res, next)=> {
     }
 }
 // logic to logout user
-export const loginUser = async (req,res)=> {
+export const loginUser = async (req,res, next)=> {
+
+    try {
+        const loginCredentials = req.validatedData
+        if (!loginCredentials || !loginCredentials.password || !loginCredentials.nationalID){
+            return res.status(400).json({status: "Bad request"})
+        }
+        const verifyLoginCredentials = await User.findOne({nationalid: loginCredentials.nationalID})
+        if(!verifyLoginCredentials || !(comparePassword(loginCredentials.password, verifyLoginCredentials.password))){
+            return res.status(400).json({status: "incorrect username/password"})
+        }
+
+        // user assigned a jwt session token
+        const loginSessionToken = generateAccessToken(verifyLoginCredentials)
+
+        return res.status(200).json({
+            status: "success",
+            data: {
+                token: loginSessionToken,
+                userID: user._id,
+                redirectURL: "/dashboard" // to be replace by a real url
+            }
+        })
+    } catch (error) {
+        next(error)
+    }
 
 }
 //logic to logout user
 export const logoutUser = async (req,res)=> {
+    try {
+        console.log(`User ${req.user._id} logged out successfully`);
+
+    return res.status(200).json({
+      status: 'success',
+      data: {
+        redirectUrl: '/login', // Redirect to login page
+      }
+    }
+    )
+    } catch (error) {
+        next(error)
+    }
+
 
 }
 //logic to refresh token
 export const refreshToken = async (req,res)=> {
+    try {
+        const userId = req.params.id
+        const refreshToken = generateRefreshToken(userId)
+        if(!refreshToken){
+            console.log("invalid use id")
+        }
+        return res.status(200).json({
+            status: "success",
+            data: {
+                token: refreshToken,
+                userID: userId
+            }
+
+        })
+    } catch (error) {
+        
+    }
 
 }
 //logic to reguest reset passwprd
