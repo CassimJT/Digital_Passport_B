@@ -4,7 +4,12 @@ import User from "../models/User.mjs"
 export const verfyNationalId = async (req,res, next)=> {
     
 }
+//Verify OPT
+export const verfyOTP =  async (req,res)=> {
+    
+}
 //logic to regester user
+
 export const registerUser = async (req,res)=> {
 
 }
@@ -32,6 +37,7 @@ export const resetPassword = async (req,res)=> {
 export const changePassword = async (req,res)=> {
 
 }
+
 
 
 
