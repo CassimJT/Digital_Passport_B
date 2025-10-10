@@ -1,4 +1,9 @@
+import User from "../models/User.mjs"
 
+//veryfy nationalID
+export const verfyNationalId = async (req,res, next)=> {
+    
+}
 //logic to regester user
 export const registerUser = async (req,res)=> {
 
