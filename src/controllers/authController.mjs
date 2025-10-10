@@ -13,7 +13,7 @@ export const verfyNationalId = async (req,res, next)=> {
     
 }
 //Verify OPT
-export const verfyOTP =  async (req,res)=> {
+export const verifyOTP =  async (req,res)=> {
     
 }
 
