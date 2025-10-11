@@ -10,12 +10,20 @@ const {
   JWT_REFRESH_EXPIRATION
 } = process.env;
 
+const jwtTokenSecret = JWT_ACCESS_SECRET
+const jwtAccesExpiration = JWT_ACCESS_EXPIRATION
+const jwtRefreshsecret = JWT_REFRESH_SECRET
+const jwtRefreshExpiration = JWT_REFRESH_EXPIRATION
+
 /**
  * Generate Access Token for a user
  * @param {Object} user - Object with _id, email, role
  * @returns {String} token
  */
 export const generateAccessToken = (user) => {
+  const accessPayload = {userID: user._id, userEmail: user.email, userRole: user.role};
+  const accessToken = jwt.sign(accessPayload,jwtTokenSecret,{expiresIn: jwtAccesExpiration})
+  return (accessToken);
   
 };
 
@@ -25,9 +33,9 @@ export const generateAccessToken = (user) => {
  * @returns {String} token
  */ 
 export const generateRefreshToken = (user) => {
-  return jwt.sign(
-    
-  );
+  const refreshPayload = {useID: user._id}
+  const refreshToken = jwt.sign(refreshPayload,jwtRefreshsecret,{expiresIn:jwtRefreshExpiration})
+  return (refreshToken);
 };
 
 /**
@@ -36,6 +44,7 @@ export const generateRefreshToken = (user) => {
  * @returns {Object|null}
  */
 export const verifyAccessToken = (token) => {
+  return jwt.verify(token,JWT_ACCESS_SECRET) ;
   
 };
 
@@ -45,5 +54,6 @@ export const verifyAccessToken = (token) => {
  * @returns {Object|null}
  */
 export const verifyRefreshToken = (token) => {
+  return jwt.verify(token,JWT_REFRESH_SECRET)
   
 };

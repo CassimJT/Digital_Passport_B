@@ -7,7 +7,8 @@ import {
   refreshToken,
   requestPasswordReset,
   resetPassword,
-  changePassword
+  changePassword,
+  verfyNationalId
 } from '../controllers/authController.mjs';
 import { validateRequest } from '../middleware/validateRequest.mjs';
 import { registerUserSchema } from '../utils/validators.mjs';
@@ -21,6 +22,7 @@ import { checkRole } from '../middleware/roleMiddleware.mjs';
 
 
 // Basic Auth Routes
+router.post('/verfy-national-id',verfyNationalId);
 router.post('/register', validateRequest(registerUserSchema), registerUser);
 router.post('/login', validateRequest(loginValidation), loginUser);
 router.post('/logout', logoutUser);
