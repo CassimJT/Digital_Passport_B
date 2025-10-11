@@ -7,16 +7,25 @@ import {generateRandomCode,
         comparePassword 
     } from "../utils/helpers.mjs"
 
+
+//veryfy nationalID
+export const verfyNationalId = async (req,res, next)=> {
+    
+}
+//Verify OPT
+export const verfyOTP =  async (req,res)=> {
+    
+}
+
 //logic to regester user
-export const registerUser = async (req,res, next)=> {
+export const registerUser = async (req,res)=> {
     try {
         const data = req.validatedData
         const hashedPassword = hashPassword(data.password)
         nrbValidatedData =  await Nrb.findById(data.nationalID)
         if(!nrbValidatedData){
             return res.status(404).json("NRB data for the user not availbale")
-        }   
-
+        }  
         const user = new User({
             residentialaddress: data.residentialAddress,
             nationalId: data.nationalID,
@@ -26,10 +35,7 @@ export const registerUser = async (req,res, next)=> {
         const saveApplicant = await user.save()
         if (!saveApplicant){
                 
-
         }
-            
-
     } catch (error) {
         next(error)
         
@@ -155,5 +161,4 @@ export const changePassword = async (req,res)=> {
 
 
 
-  
- 
+
