@@ -16,8 +16,19 @@ export const verfyNationalId = async (req,res, next)=> {
 export const verifyOTP =  async (req,res)=> {
     
 }
+=======
+>>>>>>> f845258b83708661675e59e8b71b1beb4500d5da
 
+//veryfy nationalID
+export const verfyNationalId = async (req,res, next)=> {
+    
+}
+//Verify OPT
+export const verifyOTP =  async (req,res)=> {
+    
+}
 //logic to regester user
+
 export const registerUser = async (req,res)=> {
     try {
         const data = req.validatedData
@@ -158,7 +169,7 @@ export const changePassword = async (req,res)=> {
     }
 
 }
-
-
-
-
+=======
+  
+ 
+>>>>>>> f845258b83708661675e59e8b71b1beb4500d5da
