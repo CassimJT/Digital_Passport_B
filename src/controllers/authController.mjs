@@ -1,41 +1,80 @@
 import User from "../models/User.mjs"
 import Nrb from "../models/Nrb.mjs"
+import Otp from "../models/Otp.mjs"
 import { sendEmail } from "../utils/sendEmail.mjs"
 import { generateAccessToken, generateRefreshToken } from "../utils/jwt.mjs"
 import {generateRandomCode, 
         hashPassword,
         comparePassword 
     } from "../utils/helpers.mjs"
+import { EventEmitterAsyncResource } from "events"
 
 
 //veryfy nationalID
 export const verfyNationalId = async (req,res, next)=> {
-    
-}
-//Verify OPT
-export const verifyOTP =  async (req,res)=> {
-    
-}
-=======
->>>>>>> f845258b83708661675e59e8b71b1beb4500d5da
+    try {
+        const {nationalId,email,phone} = req.body
+        const verifiedNationalId =  await Nrb.findOne({nationalId: nationalId})
+        if(!verifiedNationalId){
+            return res.status(404).json({status: "failed"})
+        }
 
-//veryfy nationalID
-export const verfyNationalId = async (req,res, next)=> {
+        const generatedOTP = generateRandomCode()
+        const saveOTPDetails = new Otp({
+            nationalId: nationalId,
+            email: email,
+            otp: generatedOTP,
+            phone:phone
+        })
+
+        const savedUserOTP = saveOTPDetails.save()
+
+        if(!savedUserOTP){
+            return res.status(400).json({status: "failed"})
+        }
+        const sendUserOTP = sendEmail(phone,generatedOTP,html)
+        if(!sendUserOTP){
+            return res.status(400).json({status: "failed"}) 
+        }
+        return res.status(200).json({status: "success"})
+    } catch (error) {
+        next(error)
+    }
     
 }
 //Verify OPT
 export const verifyOTP =  async (req,res)=> {
+    try {
+        const{nationalId,phone, email, otp} = req.body
+        const verifiedOTP = await Otp.findOne({
+            nationalId:nationalId,
+            otp: otp,
+            phone:phone,
+            email:email
+            }    
+        )
+        if(!verifiedOTP){
+            return res.status(400).json({status:"failed"})
+        }
+        
+        return res.status(200).json({status: "success"})
+
+    } catch (error) {
+        next(error)
+    }
     
 }
+
 //logic to regester user
 
 export const registerUser = async (req,res)=> {
     try {
         const data = req.validatedData
         const hashedPassword = hashPassword(data.password)
+        const checkUserOTP = await Otp.findOne({nationalId:data.nationalId})
         nrbValidatedData =  await Nrb.findById(data.nationalID)
-        if(!nrbValidatedData){
-            return res.status(404).json("NRB data for the user not availbale")
+        if(!nrbValidatedData || !checkUserOTP.otp){
+            return res.status(400).json({status:"failed"})
         }  
         const user = new User({
             residentialaddress: data.residentialAddress,
@@ -45,8 +84,10 @@ export const registerUser = async (req,res)=> {
 
         const saveApplicant = await user.save()
         if (!saveApplicant){
-                
+              return res.status(400).json({status:"failed"})   
         }
+
+        return res.status(200).json({status:"success"})
     } catch (error) {
         next(error)
         
@@ -169,7 +210,3 @@ export const changePassword = async (req,res)=> {
     }
 
 }
-=======
-  
- 
->>>>>>> f845258b83708661675e59e8b71b1beb4500d5da
