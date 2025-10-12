@@ -1,55 +1,37 @@
 import mongoose from 'mongoose';
 import { hashPassword } from '../utils/helpers.mjs';
+import Nrb from "../models/Nrb.mjs";
 
-const { Schema, model } = mongoose;
+  const { Schema, model } = mongoose;
 
-const userSchema = new Schema({
-  firstname: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  lastname: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  username: {
-    type: String,
-    required: true,
-    trim: true,
-    unique: true
-  },
-  email: {
-    type: String,
-    required: true,
-    trim: true,
-    lowercase: true,
-    unique: true
-  },
-  password: {
-    type: String,
-    required: true
-  },
-  phone: {
-    type: String,
-    trim: true
-  },
-  role: {
-    type: String,
-    enum: ['client', 'admin','superadmin'],
-    default: 'client'
-  },
-  resetPasswordToken: { 
-    type: String 
-  },
-  resetPasswordExpire: { 
-    type: Date
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  }
+  const userSchema = new Schema({
+  
+
+    //Residential address
+    residentialAddress: {
+      district: {type: String,required: true,trim: true,},
+      traditionalauthority: {type: String,required: true,trim: true,},
+      village: {type: String,required: true,trim: true,},
+    },
+    
+    nationalId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: Nrb,
+      required: true,
+      unique: true,
+    },
+
+    password: {
+      type: String,
+      required: [true, "Please add a password"],
+      minlength: [8, "Password must be atleast 8 characters"],
+    },
+
+    
+    createdAt: {
+      type: Date,
+      default: Date.now
+    }
 });
 
 userSchema.pre("save",async function(next) {
