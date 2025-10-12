@@ -3,6 +3,7 @@ import bcrypt from "bcrypt"
 import {ObjectId} from "mongoose";
 import jwt from "jsonwebtoken"
 import sharp from "sharp";
+import crypto from "crypto"
 import User from "../models/User.mjs"
 
 const PAYCHANGU_API = "https://api.paychangu.com";
@@ -59,15 +60,12 @@ export const maskEmail = (email) => {
 
 // Generate random code (e.g., for OTPs or IDs)
 export const generateRandomCode = (length = 6) => {
-  const characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-  let code = '';
 
-  for(let i = 0; i<length; i++){
-    const randomIndex = Math.floor(Math.random * characters.length)
-    code += characters[randomIndex]; 
-  }
-  return code;
+  const code = crypto.randomBytes(length)
+  const createdAt = new Date(Date.now())
+  const expiresAt = new Date(Date.now() + 20 * 60 * 1000 )
 
+  return ({code, createdAt, expiresAt})
 };
 
 // Check if user has a given role
@@ -96,7 +94,7 @@ export const comparePassword = async (raw, hashed) => {
   try {
     return await bcrypt.compare(raw, hashed);
   } catch (err) {
-    console.error('Error comparing passwords:', err);
+
     return false;
   }
     
