@@ -2,7 +2,7 @@ import User from "../models/User.mjs"
 import Nrb from "../models/Nrb.mjs"
 import Otp from "../models/Otp.mjs"
 import { sendEmail } from "../utils/sendEmail.mjs"
-import { generateAccessToken, generateRefreshToken } from "../utils/jwt.mjs"
+import { generateAccessToken, generateRefreshToken,verifyAccessToken } from "../utils/jwt.mjs"
 import {generateRandomCode, 
         hashPassword,
         comparePassword 
@@ -13,7 +13,7 @@ import { EventEmitterAsyncResource } from "events"
 //veryfy nationalID
 export const verfyNationalId = async (req,res, next)=> {
     try {
-        const {nationalId,email,phone} = req.body
+        const {nationalId,emailAdress,phone} = req.body
         const verifiedNationalId =  await Nrb.findOne({nationalId: nationalId})
         if(!verifiedNationalId){
             return res.status(404).json({status: "failed"})
@@ -22,7 +22,7 @@ export const verfyNationalId = async (req,res, next)=> {
         const generatedOTP = generateRandomCode()
         const saveOTPDetails = new Otp({
             nationalId: nationalId,
-            email: email,
+            email: emailAdress,
             otp: generatedOTP,
             phone:phone
         })
@@ -30,11 +30,11 @@ export const verfyNationalId = async (req,res, next)=> {
         const savedUserOTP = saveOTPDetails.save()
 
         if(!savedUserOTP){
-            return res.status(400).json({status: "failed"})
+          return res.status(400).json({status: "saving otp details failed"})
         }
-        const sendUserOTP = sendEmail(phone,generatedOTP,html)
+        const sendUserOTP = sendEmail(phone,generatedOTP,generatedOTP)
         if(!sendUserOTP){
-            return res.status(400).json({status: "failed"}) 
+            return res.status(400).json({status: "sending email failed"}) 
         }
         return res.status(200).json({status: "success"})
     } catch (error) {
@@ -67,18 +67,20 @@ export const verifyOTP =  async (req,res)=> {
 
 //logic to regester user
 
-export const registerUser = async (req,res)=> {
+export const registerUser = async (req,res, next)=> {
     try {
         const data = req.validatedData
-        const hashedPassword = hashPassword(data.password)
-        const checkUserOTP = await Otp.findOne({nationalId:data.nationalId})
-        nrbValidatedData =  await Nrb.findById(data.nationalID)
-        if(!nrbValidatedData || !checkUserOTP.otp){
-            return res.status(400).json({status:"failed"})
-        }  
+        const hashedPassword = await hashPassword(data.password)
+        console.log(`hashedpassword ${hashedPassword}`)
+        const findUserOTP = await Otp.findOne({nationalId:data.nationalId})
+        const findCitezen =  await Nrb.findOne({nationalId:data.nationalId})
+        if(!findCitezen || !findUserOTP.otp){
+            return res.status(400).json({status:"otp or validated failed"}) //
+        }
+
         const user = new User({
-            residentialaddress: data.residentialAddress,
-            nationalId: data.nationalID,
+            residentialAddress: data.residentialAddress,
+            nationalId: data.nationalId,
             password: hashedPassword
         })
 
@@ -86,8 +88,9 @@ export const registerUser = async (req,res)=> {
         if (!saveApplicant){
               return res.status(400).json({status:"failed"})   
         }
+        console.log(`applicant ${data.nationalId} saved to db succesfully`)
 
-        return res.status(200).json({status:"success"})
+         return res.status(200).json({status:"success"})
     } catch (error) {
         next(error)
         
@@ -98,22 +101,24 @@ export const loginUser = async (req,res, next)=> {
 
     try {
         const loginCredentials = req.validatedData
-        if (!loginCredentials || !loginCredentials.password || !loginCredentials.nationalID){
+        if (!loginCredentials || !loginCredentials.password || !loginCredentials.nationalId){
             return res.status(400).json({status: "Bad request"})
         }
-        const verifyLoginCredentials = await User.findOne({nationalid: loginCredentials.nationalID})
-        if(!verifyLoginCredentials || !(comparePassword(loginCredentials.password, verifyLoginCredentials.password))){
+
+        const findCitizen = await User.findOne({nationalId: loginCredentials.nationalId})
+        const comparedPassword = await comparePassword(loginCredentials.password, findCitizen.password)
+        if(!comparedPassword || ! findCitizen){
             return res.status(400).json({status: "incorrect username/password"})
         }
 
         // user assigned a jwt session token
-        const loginSessionToken = generateAccessToken(verifyLoginCredentials)
+        const loginSessionToken = generateAccessToken(findCitizen)
 
         return res.status(200).json({
             status: "success",
             data: {
                 token: loginSessionToken,
-                userID: user._id,
+                userId: findCitizen._id,
                 redirectURL: "/dashboard" // to be replace by a real url
             }
         })
@@ -123,10 +128,15 @@ export const loginUser = async (req,res, next)=> {
 
 }
 //logic to logout user
-export const logoutUser = async (req,res)=> {
+export const logoutUser = async (req,res,next)=> {
     try {
-        console.log(`User ${req.user._id} logged out successfully`);
-
+        const authHeader = req.headers.authorization;
+        const token = authHeader.split(' ')[1];
+        const decoded = verifyAccessToken(token);
+        if (!decoded && !authHeader && !(authHeader.startsWith('Bearer '))) {
+            return res.status(400).json({status: "you need to be logged in"})
+        }
+        console.log(`User ${req.body.user} logged out successfully`);
         return res.status(200).json({
             status: 'success',
             data: {
@@ -141,7 +151,7 @@ export const logoutUser = async (req,res)=> {
 //logic to refresh token
 export const refreshToken = async (req,res, next)=> {
     try {
-        const userId = req.params.id
+        const userId = req.body.userId
         const refreshToken = generateRefreshToken(userId)
         if(!refreshToken){
             console.log("invalid use id")
