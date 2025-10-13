@@ -25,7 +25,8 @@ Wednesday (1/10/2025)
 						|-----Middleware (Auth, Role, ErroHandler, PassportAuth)
 							|
 --------------------------------|----------------|--------------------------------------------------	
-WEEK 2, FEATURES $ DELIVERY		Sunday(5/10/2025)
+WEEK 2, FEATURES $ DELIVERY				|
+							Sunday(5/10/2025)
 							|
 							|-----Route Wiring
 								|
@@ -56,4 +57,24 @@ WEEK 2, FEATURES $ DELIVERY		Sunday(5/10/2025)
 																		|									
 																		|-------Deployment									
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------
-PARTICIPATE OF THE PROJECT
+PARTICIPANTS OF THE PROJECT
+ 
+ Light Bekete
+     ---UserControllers
+     ---AuthControllers
+
+ Titus Bokosi
+     ---PaymentControllers
+     ---socket integration
+
+ Bryan Nathupo
+     ---Models
+     ---Documentation
+     ---Testing and QA
+     ---Deployment  
+     
+Cassium 
+    ---Project setup
+    ---Database connection and configuration
+    ---Routing Wiring
+    ---Testing and QA           
