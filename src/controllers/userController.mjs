@@ -32,8 +32,8 @@ export const getUserById = async (req,res, next)=> {
 //logic to get profile
 export const getMyProfile = async (req,res,next)=> {
     try {
-        const id = req.user._id
-        const userProfile = await User.findById(id)
+        const id = req.body.id
+        const userProfile = await User.findOne(id)
 
         if(!userProfile){
             return res.status(404).json({status: "Not Found"})

@@ -1,7 +1,8 @@
 import User from "../models/User.mjs"
 import Nrb from "../models/Nrb.mjs"
 import Otp from "../models/Otp.mjs"
-import { sendEmail } from "../utils/sendEmail.mjs"
+import sendEmail  from "../utils/sendEmail.mjs"
+import sendSms from "../utils/smsSender.mjs"
 import { generateAccessToken, generateRefreshToken,verifyAccessToken } from "../utils/jwt.mjs"
 import {generateRandomCode, 
         hashPassword,
@@ -13,13 +14,21 @@ import { EventEmitterAsyncResource } from "events"
 //veryfy nationalID
 export const verfyNationalId = async (req,res, next)=> {
     try {
-        const {nationalId,emailAdress,phone} = req.body
+        const {nationalId} = req.body
         const findCitizen =  await Nrb.findOne({nationalId: nationalId})
         if(!findCitizen){
             return res.status(404).json({status: "failed"})
         }
 
+        //checking for availbale citizen email or phone from nrb data
+        if(!findCitizen.email && !findCitizen.phone){
+            return res.status(404).json({status:" email and number for verification not availabe with nrb. meet nrb personel"})
+        }
+
+        //generated the verification otp
         const generatedOTP = generateRandomCode()
+
+        //preparing otp details to be saved in otp collection
         const saveOTPDetails = new Otp({
             citizenId: findCitizen._id,
             email: emailAdress,
@@ -27,15 +36,32 @@ export const verfyNationalId = async (req,res, next)=> {
             phone:phone
         })
 
-        const savedUserOTP = saveOTPDetails.save()
+        //saving otp details
+        const savedCitizenOTP = saveOTPDetails.save()
 
-        if(!savedUserOTP){
+        if(!savedCitizenOTP){
           return res.status(400).json({status: "saving otp details failed"})
         }
-        const sendUserOTP = sendEmail(phone,generatedOTP,generatedOTP)
-        if(!sendUserOTP){
-            return res.status(400).json({status: "sending email failed"}) 
+
+        // preparing and sending the otp through email with nodemailer
+        if(findCitizen.email){
+            const html = <p> `verification otp ${generatedOTP}`</p>
+            const subject = "Malawi Immigration"
+            const sendCitizenOTP = await sendEmail(findCitizen.email,subject,html)
+            if(!sendCitizenOTP){
+                return res.status(400).json({status: "sending email failed"}) 
+            }
         }
+
+        //preparing and sending otp through sms with Twilio
+        else if(findCitizen.phone){
+            const message = `verification otp ${generatedOTP}`
+            const sendCitizenOTP = sendSms(message,findCitizen.phone)
+            if(!sendCitizenOTP){
+                return res.status(400).json({status: "sending SMS failed"}) 
+            }
+        }
+        
         return res.status(200).json({data:findCitizen._id})
     } catch (error) {
         next(error)
