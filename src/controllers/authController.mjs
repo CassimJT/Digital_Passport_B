@@ -14,14 +14,14 @@ import { EventEmitterAsyncResource } from "events"
 export const verfyNationalId = async (req,res, next)=> {
     try {
         const {nationalId,emailAdress,phone} = req.body
-        const verifiedNationalId =  await Nrb.findOne({nationalId: nationalId})
-        if(!verifiedNationalId){
+        const findCitizen =  await Nrb.findOne({nationalId: nationalId})
+        if(!findCitizen){
             return res.status(404).json({status: "failed"})
         }
 
         const generatedOTP = generateRandomCode()
         const saveOTPDetails = new Otp({
-            nationalId: nationalId,
+            citizenId: findCitizen._id,
             email: emailAdress,
             otp: generatedOTP,
             phone:phone
@@ -36,7 +36,7 @@ export const verfyNationalId = async (req,res, next)=> {
         if(!sendUserOTP){
             return res.status(400).json({status: "sending email failed"}) 
         }
-        return res.status(200).json({status: "success"})
+        return res.status(200).json({data:findCitizen._id})
     } catch (error) {
         next(error)
     }
@@ -72,7 +72,7 @@ export const registerUser = async (req,res, next)=> {
         const data = req.validatedData
         const hashedPassword = await hashPassword(data.password)
         console.log(`hashedpassword ${hashedPassword}`)
-        const findUserOTP = await Otp.findOne({nationalId:data.nationalId})
+        const findUserOTP = await Otp.findOne({nationalId:data._id})
         const findCitezen =  await Nrb.findOne({nationalId:data.nationalId})
         if(!findCitezen || !findUserOTP.otp){
             return res.status(400).json({status:"otp or validated failed"}) //
