@@ -80,3 +80,25 @@ PARTICIPANTS OF THE PROJECT
           																|----Route Wiring	
 																		|----Testing & QA
 </pre>
+
+ENDPOINTS / URLs 
+<pre>
+	Endpoints which client is expected to hit
+
+	URL :http://localhost:5000/api/auth//verfy-national-id  ---user provide national-id for verification
+	Method: POST
+
+	URL:http://localhost:5000/api/auth/register           
+	Method: POST
+
+	URL:http://localhost:5000/api/auth/login
+	Method: POST
+
+	URL:http://localhost:5000/api/auth/logout
+	Method: POST
+
+	URL:http://localhost:5000/api/auth/logout
+	Method: POST
+
+
+</pre>
