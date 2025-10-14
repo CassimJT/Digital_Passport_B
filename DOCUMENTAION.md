@@ -58,23 +58,25 @@ WEEK 2, FEATURES $ DELIVERY				|
 																		|-------Deployment									
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------
 PARTICIPANTS OF THE PROJECT
- 
+
+ <pre>'''
  Light Bekete
-     ---UserControllers
-     ---AuthControllers
+     |---UserControllers
+     |---AuthControllers
 
  Titus Bokosi
-     ---PaymentControllers
-     ---socket integration
+     |---PaymentControllers
+     |---socket integration
 
  Bryan Nathupo
-     ---Models
-     ---Documentation
-     ---Testing and QA
-     ---Deployment  
+     |---Models
+     |---Documentation
+     |-----Testing and QA
+     |---Deployment  
      
 Cassium 
-    ---Project setup
-    ---Database connection and configuration
-    ---Routing Wiring
-    ---Testing and QA           
+    |---Project setup
+    |---Database connection and configuration
+    |---Routing Wiring
+    |---Testing and QA           
+'''</pre>
