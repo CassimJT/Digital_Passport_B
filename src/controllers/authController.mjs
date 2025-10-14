@@ -72,7 +72,7 @@ export const registerUser = async (req,res, next)=> {
         const data = req.validatedData
         const hashedPassword = await hashPassword(data.password)
         console.log(`hashedpassword ${hashedPassword}`)
-        const findUserOTP = await Otp.findOne({nationalId:data._id})
+        const findUserOTP = await Otp.findOne({nationalId:data.nationalId})
         const findCitezen =  await Nrb.findOne({nationalId:data.nationalId})
         if(!findCitezen || !findUserOTP.otp){
             return res.status(400).json({status:"otp or validated failed"}) //
