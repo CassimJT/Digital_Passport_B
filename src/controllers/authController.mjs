@@ -15,7 +15,7 @@ import { EventEmitterAsyncResource } from "events"
 //veryfy nationalID
 export const verfyNationalId = async (req,res, next)=> {
     try {
-        const {nationalId} = req.body
+        const {phone,emailAdress,nationalId} = req.body
         const findCitizen =  await Nrb.findOne({nationalId: nationalId})
         if(!findCitizen){
             return res.status(404).json({
@@ -28,18 +28,25 @@ export const verfyNationalId = async (req,res, next)=> {
 
         //preparing otp details to be saved in otp collection
         const saveOTPDetails = new Otp({
-            citizenId: findCitizen._id,
+            nationalId: findCitizen._id,
             email: emailAdress,
             otp: generatedOTP,
             phone:phone
         })
+        if (!saveOTPDetails){
+            return res.status(500).json({
+            status: "failed",
+            message: "Internal server error.Validatiton failed"
+          })
+        }
 
         //saving otp details
         const savedCitizenOTP = saveOTPDetails.save()
         if(!savedCitizenOTP){
           return res.status(400).json({
             status: "failed",
-            message: "saving otp details failed"})
+            message: "saving otp details failed"
+          })
         }
 
         // preparing and sending the otp through email with nodemailer
@@ -87,29 +94,40 @@ export const verifyOTP =  async (req,res)=> {
 
 export const registerUser = async (req,res, next)=> {
     try {
-        const data = req.validatedData
-        const hashedPassword = await hashPassword(data.password)
+        const {nationalId,password,residentialAddress} = req.validatedData
+        const hashedPassword = await hashPassword(password)
         console.log(`hashedpassword ${hashedPassword}`)
-        const findUserOTP = await Otp.findOne({nationalId:data.nationalId})
-        const findCitezen =  await Nrb.findOne({nationalId:data.nationalId})
+        const findUserOTP = await Otp.findOne({nationalId})
+        const findCitezen =  await Nrb.findById(findUserOTP.nationalId)
         if(!findCitezen || !findUserOTP.otp){
             return res.status(400).json({
                 status:"failed",
-                message:"otp or validated failed"}) 
+                message:"otp or validated failed"
+            }) 
         }
 
-        const user = new User({
-            residentialAddress: data.residentialAddress,
-            nationalId: data.nationalId,
+        console.log(findUserOTP)
+        const saveCitizen = new User({
+            residentialAddress: residentialAddress,
+            nationalId: findCitezen._id,
             password: hashedPassword
         })
 
-        const saveApplicant = await user.save()
-        if (!saveApplicant){
-              return res.status(400).json({
-                status:"failed"})   
+        if(!saveCitizen){
+            return res.status(400).json({
+                status:"failed",
+                message:"citizen validation failed"
+            }) 
         }
-        console.log(`applicant ${data.nationalId} saved to db succesfully`)
+
+
+        const savedCitizen = await saveCitizen.save()
+        if (!savedCitizen){
+              return res.status(400).json({
+                status:"failed",
+                message: "citizen was not saved in db"
+            })   
+        }
 
          return res.status(200).json({
             status:"success",
