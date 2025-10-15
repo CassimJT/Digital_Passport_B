@@ -9,17 +9,6 @@ import {generateRandomCode,
         comparePassword 
     } from "../utils/helpers.mjs"
 
-//logic to regester user
-export const registerUser = async (req,res, next)=> {
-    try {
-        const data = req.validatedData
-        const hashedPassword = hashPassword(data.password)
-        nrbValidatedData =  await Nrb.findById(data.nationalID)
-        if(!nrbValidatedData){
-            return res.status(404).json("NRB data for the user not availbale")
-        }   
-import { EventEmitterAsyncResource } from "events"
-
 
 //veryfy nationalID
 export const verfyNationalId = async (req,res, next)=> {
