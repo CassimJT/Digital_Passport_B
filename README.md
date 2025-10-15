@@ -80,7 +80,12 @@ Coding style
 
     when success return the block as follow 
     {
-        satus: "success",
+        status: "success",
+        message "message body"
+    }
+    when fails return the block as follow 
+    {
+        status: "faild",
         message "message body"
     }
 

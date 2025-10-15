@@ -13,7 +13,7 @@ const transporter = nodemailer.createTransport({
 })
 
 //sending the email
-export const sendEmail = async (to,subject,html) => {
+const sendEmail = async (to,subject,html) => {
    try{
      mailOptions = {
         from: process.env.EMAIL_USER,
@@ -29,3 +29,5 @@ export const sendEmail = async (to,subject,html) => {
    }
     
 }
+
+export default sendEmail
