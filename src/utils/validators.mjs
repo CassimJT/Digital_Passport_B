@@ -3,11 +3,11 @@ import { upload } from './multerConfig.mjs';
 
 // USER VALIDATION
 export const registerUserSchema = Joi.object({
-  nationalID: Joi.string().required(),
-  password: Joi.string().pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[a-zA-Z\d]){8,}$/).required(),
+  nationalId: Joi.string().required(),
+  password: Joi.string().required(),
   residentialAddress:{
     district: Joi.string().required(),
-    traditionalAuthority: Joi.string().required(),
+    traditionalauthority: Joi.string().required(),
     village: Joi.string().required()
   },
   createdAt:Joi.date()
@@ -22,28 +22,28 @@ export const validateEmail = Joi.object({
 //VALIDATE PASSWORD
 export const validatePassword = Joi.object({
   userID: Joi.string(),
-  password: Joi.string().pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[a-zA-Z\d]){8,}$/).required()
+  password: Joi.string().required()
 
 
 })
 //VALIDATE CHANGE PASSWORD
 export const validateChangePassword = Joi.object({
   userID: Joi.string(),
-  currentPassword: Joi.string().pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[a-zA-Z\d]){8,}$/).required(),
-  newPassword: Joi.string().pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[a-zA-Z\d]){8,}$/).required(),
-  confirmNewPassword: Joi.string().pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[a-zA-Z\d]){8,}$/).required()
+  currentPassword: Joi.string().required(),
+  newPassword: Joi.string().required(),
+  confirmNewPassword: Joi.string().required()
  
 })
 //LOG IN VALIDATION
 export const loginValidation = Joi.object({
-  nationalID: Joi.string().min(4).max(4).required(),
-  password: Joi.string().pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[a-zA-Z\d]){8,}$/).required()
+  nationalId: Joi.string().required(),
+  password: Joi.string().required()
   
 })
 
 export const loginSchema = Joi.object({
-  nationalID: Joi.string().min(4).max(4).required(),
-  password: Joi.string().pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[a-zA-Z\d]){8,}$/).required()
+  nationalID: Joi.string().required(),
+  password: Joi.string().required()
   
 });
 

@@ -10,10 +10,10 @@ const {
   JWT_REFRESH_EXPIRATION
 } = process.env;
 
-const jwtTokenSecret = JWT_ACCESS_SECRET
-const jwtAccesExpiration = JWT_ACCESS_EXPIRATION
-const jwtRefreshsecret = JWT_REFRESH_SECRET
-const jwtRefreshExpiration = JWT_REFRESH_EXPIRATION
+const jwtTokenSecret=JWT_ACCESS_SECRET
+const jwtAccesExpiration=JWT_ACCESS_EXPIRATION
+const jwtRefreshsecret=JWT_REFRESH_SECRET
+const jwtRefreshExpiration=JWT_REFRESH_EXPIRATION
 
 /**
  * Generate Access Token for a user
@@ -21,7 +21,8 @@ const jwtRefreshExpiration = JWT_REFRESH_EXPIRATION
  * @returns {String} token
  */
 export const generateAccessToken = (user) => {
-  const accessPayload = {userID: user._id, userEmail: user.email, userRole: user.role};
+  const accessPayload = {userId: user._id, citizenId: user.nationalId};
+  console.log(accessPayload)
   const accessToken = jwt.sign(accessPayload,jwtTokenSecret,{expiresIn: jwtAccesExpiration})
   return (accessToken);
   
