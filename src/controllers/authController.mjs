@@ -3,12 +3,14 @@ import Nrb from "../models/Nrb.mjs"
 import Otp from "../models/Otp.mjs"
 import {sendEmail}  from "../utils/sendEmail.mjs"
 import {sendSms} from "../utils/smsSender.mjs"
-import { generateAccessToken, generateRefreshToken,verifyAccessToken } from "../utils/jwt.mjs"
+import { generateAccessToken, 
+         generateRefreshToken,
+         verifyAccessToken } from "../utils/jwt.mjs"
 import {generateRandomCode, 
         hashPassword,
         comparePassword,
         maskEmail 
-    } from "../utils/helpers.mjs"
+        } from "../utils/helpers.mjs"
 import { EventEmitterAsyncResource } from "events"
 
 
@@ -94,7 +96,7 @@ export const verifyOTP =  async (req,res)=> {
 
 export const registerUser = async (req,res, next)=> {
     try {
-        const {nationalId,password,residentialAddress} = req.validatedData
+        const {nationalId,password,emailAdress,residentialAddress} = req.validatedData
         const hashedPassword = await hashPassword(password)
         console.log(`hashedpassword ${hashedPassword}`)
         const findUserOTP = await Otp.findOne({nationalId})
@@ -110,6 +112,7 @@ export const registerUser = async (req,res, next)=> {
         const saveCitizen = new User({
             residentialAddress: residentialAddress,
             nationalId: findCitezen._id,
+            emailAddress: emailAddress,
             password: hashedPassword
         })
 
@@ -141,15 +144,15 @@ export const registerUser = async (req,res, next)=> {
 export const loginUser = async (req,res, next)=> {
 
     try {
-        const loginCredentials = req.validatedData
-        if (!loginCredentials || !loginCredentials.password || !loginCredentials.nationalId){
+        const {emailAddress,password} = req.validatedData
+        if (!password || !emailAddress){
             return res.status(400).json({
                 status: "failed",
-                message: "Bad request"})
+                message: "Bad request .Missing emailAddress/password"})
         }
 
-        const findCitizen = await User.findOne({nationalId: loginCredentials.nationalId})
-        const comparedPassword = await comparePassword(loginCredentials.password, findCitizen.password)
+        const findCitizen = await User.findOne({emailAddress: emailAddress})
+        const comparedPassword = await comparePassword(password, findCitizen.password)
         if(!comparedPassword || !findCitizen){
             return res.status(400).json({
                 status: "failed", 
@@ -158,6 +161,9 @@ export const loginUser = async (req,res, next)=> {
 
         // user assigned a jwt session token
         const loginSessionToken = generateAccessToken(findCitizen)
+
+        // user assigned a refresh jwt token
+        const refreshLoginToken = generateRefreshToken(findCitizen)
 
         return res.status(200).json({
             status: "success",
