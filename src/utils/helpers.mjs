@@ -59,13 +59,13 @@ export const maskEmail = (email) => {
 };
 
 // Generate random code (e.g., for OTPs or IDs)
-export const generateRandomCode = (length = 6) => {
+export const generateRandomCode = (length = 3) => {
 
-  const code = crypto.randomBytes(length)
+  const code = crypto.randomBytes(length).toString('hex')
   const createdAt = new Date(Date.now())
   const expiresAt = new Date(Date.now() + 20 * 60 * 1000 )
 
-  return ({code, createdAt, expiresAt})
+  return (code)
 };
 
 // Check if user has a given role
@@ -79,7 +79,8 @@ export const hasRole = (user, roles = []) => {
 //hash the password
 export const hashPassword = async (password) => {
   try {
-    const hashedPassword = await bcrypt.hash(password,saltRounds)
+    const salt =  await bcrypt.genSalt(saltRounds);
+    const hashedPassword =await bcrypt.hash(password,salt)
     return hashedPassword;
   } catch (error) {
     return {status:500, message:"error while hashing"}
@@ -88,11 +89,13 @@ export const hashPassword = async (password) => {
 };
 //copare the raw and hashed password
 export const comparePassword = async (raw, hashed) => {
-  if (!raw || !hashed || typeof raw !== 'string' || typeof hashed !== 'string') {
-    return false;
-  }
+  // if (!raw || !hashed || typeof raw !== 'string' || typeof hashed !== 'string') {
+  //   return false;
+  // }
   try {
-    return await bcrypt.compare(raw, hashed);
+    const comparedPassword = await bcrypt.compare(raw, hashed);
+    console.log(comparedPassword)
+    return comparedPassword
   } catch (err) {
 
     return false;

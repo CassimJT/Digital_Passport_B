@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import Nrb from "./Nrb.mjs";
 const { Schema, model } = mongoose;
 
 const otpSchema = new Schema({

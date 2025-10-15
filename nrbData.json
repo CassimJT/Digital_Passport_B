@@ -1,0 +1,451 @@
+[
+  {
+    "nationality": "Malawian",
+    "secondNationality": "None",
+    "dateOfBirth": "1990-05-15T00:00:00.000Z",
+    "sex": "male",
+    "placeOfBirth": {
+      "district": "Ntcheu",
+      "traditionalauthority": "Njolemole",
+      "village": "Waiyatsa"
+    },
+    "firstName": "John",
+    "middleName": "Chisomo",
+    "surName": "Banda",
+    "maritalStatus": "married",
+    "colourOfEyes": "Brown",
+    "mobilePhone": "0999123456",
+    "emailAddress": "john.banda@example.com",
+    "residentialAddress": {
+      "district": "Ntcheu",
+      "traditionalauthority": "Njolemole",
+      "village": "Waiyatsa"
+    },
+    "nationalId": "GWUJH77G"
+  },
+  {
+    "nationality": "Zambian",
+    "dateOfBirth": "1985-03-22T00:00:00.000Z",
+    "sex": "female",
+    "placeOfBirth": {
+      "district": "Blantyre",
+      "traditionalauthority": "Kapeni",
+      "village": "Chimwankhunda"
+    },
+    "firstName": "Mary",
+    "surName": "Phiri",
+    "maritalStatus": "divorced",
+    "colourOfEyes": "Black",
+    "mobilePhone": "0888234567",
+    "emailAddress": "mary.phiri@example.com",
+    "residentialAddress": {
+      "district": "Blantyre",
+      "traditionalauthority": "Kapeni",
+      "village": "Chimwankhunda"
+    },
+    "nationalId": "XHYTK88H"
+  },
+  {
+    "nationality": "Mozambican",
+    "secondNationality": "Malawian",
+    "dateOfBirth": "1992-11-10T00:00:00.000Z",
+    "sex": "male",
+    "placeOfBirth": {
+      "district": "Zomba",
+      "traditionalauthority": "Mpokwa",
+      "village": "Chisi"
+    },
+    "firstName": "Peter",
+    "middleName": "James",
+    "surName": "Mussa",
+    "maritalStatus": "never married",
+    "colourOfEyes": "Brown",
+    "mobilePhone": "0999345678",
+    "emailAddress": "mary.phir23i@example.com",
+    "residentialAddress": {
+      "district": "Zomba",
+      "traditionalauthority": "Mpokwa",
+      "village": "Chisi"
+    },
+    "nationalId": "JKEPL99J"
+  },
+  {
+    "nationality": "Tanzanian",
+    "dateOfBirth": "1988-07-30T00:00:00.000Z",
+    "sex": "female",
+    "placeOfBirth": {
+      "district": "Lilongwe",
+      "traditionalauthority": "Chiseka",
+      "village": "Malingunde"
+    },
+    "firstName": "Grace",
+    "surName": "Kamanga",
+    "maritalStatus": "widowed",
+    "colourOfEyes": "Black",
+    "mobilePhone": "0888456789",
+    "emailAddress": "grace.kamanga@example.com",
+    "residentialAddress": {
+      "district": "Lilongwe",
+      "traditionalauthority": "Chiseka",
+      "village": "Malingunde"
+    },
+    "nationalId": "MNFQR11K"
+  },
+  {
+    "nationality": "South African",
+    "dateOfBirth": "1995-01-25T00:00:00.000Z",
+    "sex": "male",
+    "placeOfBirth": {
+      "district": "Mulanje",
+      "traditionalauthority": "Mabuka",
+      "village": "Namtembo"
+    },
+    "firstName": "David",
+    "surName": "Nkhoma",
+    "maritalStatus": "separated",
+    "colourOfEyes": "Brown",
+    "mobilePhone": "0999567890",
+    "emailAddress": "marerry.phiri@example.com",
+    "residentialAddress": {
+      "district": "Mulanje",
+      "traditionalauthority": "Mabuka",
+      "village": "Namtembo"
+    },
+    "nationalId": "PLSTU22L"
+  },
+  {
+    "nationality": "Kenyan",
+    "secondNationality": "None",
+    "dateOfBirth": "1993-09-12T00:00:00.000Z",
+    "sex": "female",
+    "placeOfBirth": {
+      "district": "Mangochi",
+      "traditionalauthority": "Mponda",
+      "village": "Makokola"
+    },
+    "firstName": "Esther",
+    "middleName": "Ruth",
+    "surName": "Chirwa",
+    "maritalStatus": "married",
+    "colourOfEyes": "Black",
+    "mobilePhone": "0888678901",
+    "emailAddress": "esther.chirwa@example.com",
+    "residentialAddress": {
+      "district": "Mangochi",
+      "traditionalauthority": "Mponda",
+      "village": "Makokola"
+    },
+    "nationalId": "QVWXY33M"
+  },
+  {
+    "nationality": "Ugandan",
+    "dateOfBirth": "1987-04-18T00:00:00.000Z",
+    "sex": "male",
+    "placeOfBirth": {
+      "district": "Salima",
+      "traditionalauthority": "Ndindi",
+      "village": "Chipoka"
+    },
+    "firstName": "Joseph",
+    "surName": "Mwale",
+    "maritalStatus": "never married",
+    "colourOfEyes": "Brown",
+    "mobilePhone": "0999789012",
+    "emailAddress": "mary.phirewe3i@example.com",
+    "residentialAddress": {
+      "district": "Salima",
+      "traditionalauthority": "Ndindi",
+      "village": "Chipoka"
+    },
+    "nationalId": "RABCD44N"
+  },
+  {
+    "nationality": "Zimbabwean",
+    "dateOfBirth": "1990-12-05T00:00:00.000Z",
+    "sex": "female",
+    "placeOfBirth": {
+      "district": "Dedza",
+      "traditionalauthority": "Kaphuka",
+      "village": "Mtakataka"
+    },
+    "firstName": "Sarah",
+    "surName": "Gondwe",
+    "maritalStatus": "divorced",
+    "colourOfEyes": "Black",
+    "mobilePhone": "0888890123",
+    "emailAddress": "sarah.gondwe@example.com",
+    "residentialAddress": {
+      "district": "Dedza",
+      "traditionalauthority": "Kaphuka",
+      "village": "Mtakataka"
+    },
+    "nationalId": "SEFGH55P"
+  },
+  {
+    "nationality": "Botswanan",
+    "secondNationality": "Malawian",
+    "dateOfBirth": "1986-06-20T00:00:00.000Z",
+    "sex": "male",
+    "placeOfBirth": {
+      "district": "Chitipa",
+      "traditionalauthority": "Mwenewenya",
+      "village": "Kameme"
+    },
+    "firstName": "Thomas",
+    "middleName": "Luka",
+    "surName": "Nyirenda",
+    "maritalStatus": "married",
+    "colourOfEyes": "Brown",
+    "mobilePhone": "0999901234",
+    "emailAddress": "mardgyy.phirti@example.com",
+    "residentialAddress": {
+      "district": "Chitipa",
+      "traditionalauthority": "Mwenewenya",
+      "village": "Kameme"
+    },
+    "nationalId": "TIJKL66Q"
+  },
+  {
+    "nationality": "Nigerian",
+    "dateOfBirth": "1994-02-28T00:00:00.000Z",
+    "sex": "female",
+    "placeOfBirth": {
+      "district": "Nsanje",
+      "traditionalauthority": "Ndamera",
+      "village": "Makhanga"
+    },
+    "firstName": "Ruth",
+    "surName": "Kumwenda",
+    "maritalStatus": "abandoned",
+    "colourOfEyes": "Black",
+    "mobilePhone": "0888012345",
+    "emailAddress": "ruth.kumwenda@example.com",
+    "residentialAddress": {
+      "district": "Nsanje",
+      "traditionalauthority": "Ndamera",
+      "village": "Makhanga"
+    },
+    "nationalId": "UMNOP77R"
+  },
+  {
+    "nationality": "Ghanaian",
+    "dateOfBirth": "1989-08-15T00:00:00.000Z",
+    "sex": "male",
+    "placeOfBirth": {
+      "district": "Karonga",
+      "traditionalauthority": "Kyungu",
+      "village": "Ngana"
+    },
+    "firstName": "Samuel",
+    "surName": "Mbewe",
+    "maritalStatus": "never married",
+    "colourOfEyes": "Brown",
+    "mobilePhone": "0999123467",
+    "residentialAddress": {
+      "district": "Karonga",
+      "traditionalauthority": "Kyungu",
+      "village": "Ngana"
+    },
+    "nationalId": "VWXYZ88S"
+  },
+  {
+    "nationality": "Ethiopian",
+    "secondNationality": "None",
+    "dateOfBirth": "1991-03-10T00:00:00.000Z",
+    "sex": "female",
+    "placeOfBirth": {
+      "district": "Machinga",
+      "traditionalauthority": "Kawinga",
+      "village": "Ntaja"
+    },
+    "firstName": "Lillian",
+    "middleName": "Grace",
+    "surName": "Tembo",
+    "maritalStatus": "married",
+    "colourOfEyes": "Black",
+    "mobilePhone": "0888234678",
+    "emailAddress": "lillian.tembo@example.com",
+    "residentialAddress": {
+      "district": "Machinga",
+      "traditionalauthority": "Kawinga",
+      "village": "Ntaja"
+    },
+    "nationalId": "ABCDE99T"
+  },
+  {
+    "nationality": "Rwandan",
+    "dateOfBirth": "1984-10-22T00:00:00.000Z",
+    "sex": "male",
+    "placeOfBirth": {
+      "district": "Thyolo",
+      "traditionalauthority": "Nsabwe",
+      "village": "Bvumbwe"
+    },
+    "firstName": "Michael",
+    "surName": "Kaunda",
+    "maritalStatus": "divorced",
+    "colourOfEyes": "Brown",
+    "mobilePhone": "0999346789",
+    "residentialAddress": {
+      "district": "Thyolo",
+      "traditionalauthority": "Nsabwe",
+      "village": "Bvumbwe"
+    },
+    "nationalId": "FGHIJ11U"
+  },
+  {
+    "nationality": "Burundian",
+    "dateOfBirth": "1996-05-05T00:00:00.000Z",
+    "sex": "female",
+    "placeOfBirth": {
+      "district": "Rumphi",
+      "traditionalauthority": "Mwahenga",
+      "village": "Bolero"
+    },
+    "firstName": "Elizabeth",
+    "surName": "Mtambo",
+    "maritalStatus": "never married",
+    "colourOfEyes": "Black",
+    "mobilePhone": "0888457890",
+    "emailAddress": "elizabeth.mtambo@example.com",
+    "residentialAddress": {
+      "district": "Rumphi",
+      "traditionalauthority": "Mwahenga",
+      "village": "Bolero"
+    },
+    "nationalId": "KLMNO22V"
+  },
+  {
+    "nationality": "Sudanese",
+    "secondNationality": "Malawian",
+    "dateOfBirth": "1983-07-17T00:00:00.000Z",
+    "sex": "male",
+    "placeOfBirth": {
+      "district": "Chikwawa",
+      "traditionalauthority": "Ngabu",
+      "village": "Mbewe"
+    },
+    "firstName": "Charles",
+    "middleName": "Patrick",
+    "surName": "Nkhata",
+    "maritalStatus": "married",
+    "colourOfEyes": "Brown",
+    "mobilePhone": "0999568901",
+    "residentialAddress": {
+      "district": "Chikwawa",
+      "traditionalauthority": "Ngabu",
+      "village": "Mbewe"
+    },
+    "nationalId": "PQRST33W"
+  },
+  {
+    "nationality": "Cameroonian",
+    "dateOfBirth": "1997-01-30T00:00:00.000Z",
+    "sex": "female",
+    "placeOfBirth": {
+      "district": "Phalombe",
+      "traditionalauthority": "Nkhulambe",
+      "village": "Migowi"
+    },
+    "firstName": "Jane",
+    "surName": "Chimwaza",
+    "maritalStatus": "separated",
+    "colourOfEyes": "Black",
+    "mobilePhone": "0888679012",
+    "emailAddress": "jane.chimwaza@example.com",
+    "residentialAddress": {
+      "district": "Phalombe",
+      "traditionalauthority": "Nkhulambe",
+      "village": "Migowi"
+    },
+    "nationalId": "UVWXZ44X"
+  },
+  {
+    "nationality": "Algerian",
+    "dateOfBirth": "1982-09-25T00:00:00.000Z",
+    "sex": "male",
+    "placeOfBirth": {
+      "district": "Mzimba",
+      "traditionalauthority": "Mtwalo",
+      "village": "Euthini"
+    },
+    "firstName": "Andrew",
+    "surName": "Msiska",
+    "maritalStatus": "widowed",
+    "colourOfEyes": "Brown",
+    "mobilePhone": "0999780123",
+    "residentialAddress": {
+      "district": "Mzimba",
+      "traditionalauthority": "Mtwalo",
+      "village": "Euthini"
+    },
+    "nationalId": "YZABC55Y"
+  },
+  {
+    "nationality": "Moroccan",
+    "secondNationality": "None",
+    "dateOfBirth": "1998-04-12T00:00:00.000Z",
+    "sex": "female",
+    "placeOfBirth": {
+      "district": "Nkhata Bay",
+      "traditionalauthority": "Fukamala",
+      "village": "Chintheche"
+    },
+    "firstName": "Patricia",
+    "middleName": "Anne",
+    "surName": "Zimba",
+    "maritalStatus": "never married",
+    "colourOfEyes": "Black",
+    "mobilePhone": "0888891234",
+    "emailAddress": "patricia.zimba@example.com",
+    "residentialAddress": {
+      "district": "Nkhata Bay",
+      "traditionalauthority": "Fukamala",
+      "village": "Chintheche"
+    },
+    "nationalId": "BCDEF66Z"
+  },
+  {
+    "nationality": "Tunisian",
+    "dateOfBirth": "1981-11-08T00:00:00.000Z",
+    "sex": "male",
+    "placeOfBirth": {
+      "district": "Kasungu",
+      "traditionalauthority": "Mwase",
+      "village": "Chulu"
+    },
+    "firstName": "Daniel",
+    "surName": "Mkandawire",
+    "maritalStatus": "married",
+    "colourOfEyes": "Brown",
+    "mobilePhone": "0999012345",
+    "residentialAddress": {
+      "district": "Kasungu",
+      "traditionalauthority": "Mwase",
+      "village": "Chulu"
+    },
+    "nationalId": "GHIJK77A"
+  },
+  {
+    "nationality": "Egyptian",
+    "dateOfBirth": "1999-06-19T00:00:00.000Z",
+    "sex": "female",
+    "placeOfBirth": {
+      "district": "Balaka",
+      "traditionalauthority": "Nsamala",
+      "village": "Utale"
+    },
+    "firstName": "Monica",
+    "surName": "Dzonzi",
+    "maritalStatus": "divorced",
+    "colourOfEyes": "Black",
+    "mobilePhone": "0888123456",
+    "emailAddress": "monica.dzonzi@example.com",
+    "residentialAddress": {
+      "district": "Balaka",
+      "traditionalauthority": "Nsamala",
+      "village": "Utale"
+    },
+    "nationalId": "LMNOP88B"
+  }
+]
