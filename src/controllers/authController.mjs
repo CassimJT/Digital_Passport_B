@@ -2,7 +2,7 @@ import User from "../models/User.mjs"
 import Nrb from "../models/Nrb.mjs"
 import Otp from "../models/Otp.mjs"
 import sendEmail  from "../utils/sendEmail.mjs"
-import sendSms from "../utils/smsSender.mjs"
+//import sendSms from "../utils/smsSender.mjs"
 import { generateAccessToken, generateRefreshToken,verifyAccessToken } from "../utils/jwt.mjs"
 import {generateRandomCode, 
         hashPassword,
@@ -44,7 +44,7 @@ export const verfyNationalId = async (req,res, next)=> {
 
         // preparing and sending the otp through email with nodemailer
         if(findCitizen.email){
-            const html = <p> `verification otp ${generatedOTP}`</p>
+            //const html = <p> `verification otp ${generatedOTP}`</p>
             const subject = "Malawi Immigration"
             const sendCitizenOTP = await sendEmail(findCitizen.email,subject,html)
             if(!sendCitizenOTP){
@@ -245,11 +245,8 @@ export const changePassword = async (req,res)=> {
     }
 
 }
-<<<<<<< HEAD
 
 
 
   
  
-=======
->>>>>>> 0a2b492134985483bc3f0c91555a08f1ca8ea99c
