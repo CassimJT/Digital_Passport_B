@@ -36,13 +36,13 @@ export const validateChangePassword = Joi.object({
 })
 //LOG IN VALIDATION
 export const loginValidation = Joi.object({
-  nationalId: Joi.string().required(),
+  emailAddress: Joi.string().required(),
   password: Joi.string().required()
   
 })
 
 export const loginSchema = Joi.object({
-  nationalID: Joi.string().required(),
+  emailAddress: Joi.string().required(),
   password: Joi.string().required()
   
 });

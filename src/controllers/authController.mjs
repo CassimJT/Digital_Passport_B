@@ -193,7 +193,7 @@ export const logoutUser = async (req,res,next)=> {
                 }
             })
         }
-        console.log(`User ${req.body.user} logged out successfully`);
+        
         return res.status(200).json({
             status: 'success',
             message: {
