@@ -17,7 +17,7 @@ import { EventEmitterAsyncResource } from "events"
 //veryfy nationalID
 export const verfyNationalId = async (req,res, next)=> {
     try {
-        const {phone,emailAdress,nationalId} = req.body
+        const {phone,emailAddress,nationalId} = req.body
         const findCitizen =  await Nrb.findOne({nationalId: nationalId})
         if(!findCitizen){
             return res.status(404).json({
@@ -31,7 +31,7 @@ export const verfyNationalId = async (req,res, next)=> {
         //preparing otp details to be saved in otp collection
         const saveOTPDetails = new Otp({
             nationalId: findCitizen._id,
-            email: emailAdress,
+            email: emailAddress,
             otp: generatedOTP,
             phone:phone
         })
@@ -193,7 +193,7 @@ export const logoutUser = async (req,res,next)=> {
                 }
             })
         }
-        
+
         return res.status(200).json({
             status: 'success',
             message: {
