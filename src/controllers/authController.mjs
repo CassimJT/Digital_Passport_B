@@ -1,8 +1,7 @@
 import User from "../models/User.mjs"
 import Nrb from "../models/Nrb.mjs"
 import Otp from "../models/Otp.mjs"
-import {sendEmail}  from "../utils/sendEmail.mjs"
-import {sendSms} from "../utils/smsSender.mjs"
+import sendEmail  from "../utils/sendEmail.mjs"
 import { generateAccessToken, 
          generateRefreshToken,
          verifyAccessToken } from "../utils/jwt.mjs"
@@ -11,7 +10,7 @@ import {generateRandomCode,
         comparePassword,
         maskEmail 
         } from "../utils/helpers.mjs"
-import { EventEmitterAsyncResource } from "events"
+
 
 
 //veryfy nationalID
