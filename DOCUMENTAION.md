@@ -84,23 +84,64 @@ PARTICIPANTS OF THE PROJECT
 
 ENDPOINTS / URLs 
 <pre>
-	
+
 	Endpoints which client is expected to hit
 
 	URL :http://localhost:5000/api/auth//verfy-national-id  ---user provide national-id for verification
 	Method: POST
 
-	URL:http://localhost:5000/api/auth/register           
-	Method: POST
+	Expectations
+		if(idverified)
+			{
 
-	URL:http://localhost:5000/api/auth/login
-	Method: POST
+			status: 200
+			status: "Success"
+			message:"User exist"
 
-	URL:http://localhost:5000/api/auth/logout
-	Method: POST
+			},
 
-	URL:http://localhost:5000/api/auth/logout
-	Method: POST
+		if(citizenNOtFound)
+				
+			{
 
+			status: 404
+			status: "Failed"
+			message:"Citizen not found"
 
+			},
+
+	    if(citizenPhone && emailNOtFound)
+				
+			{
+
+			status: 404
+			status: "Failed"
+			message:"Email and number for verification not availabe with NRB, meet NRB personel"
+
+			},
+
+			OTP
+		if(citizenOtpNotSaved)
+			{
+
+				status: 400
+				status: "Failed"
+				message: "Saving OTP details failed"
+			}
+
+		if(citizenOtpNotSent)
+			{
+
+				status: 400
+				status: "Failed"
+				message: "Sending otp to citizen email failed"
+			},
+		else 
+			{
+
+				status: 500
+				status: "Failed"
+				message: erro.message
+			}
+			
 </pre>
