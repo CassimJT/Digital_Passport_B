@@ -95,7 +95,7 @@ export const verifyOTP =  async (req,res)=> {
 
 export const registerUser = async (req,res, next)=> {
     try {
-        const {nationalId,password,emailAdress,residentialAddress} = req.validatedData
+        const {nationalId,password,emailAddress,residentialAddress} = req.validatedData
         const hashedPassword = await hashPassword(password)
         console.log(`hashedpassword ${hashedPassword}`)
         const findUserOTP = await Otp.findOne({nationalId})
@@ -151,11 +151,19 @@ export const loginUser = async (req,res, next)=> {
         }
 
         const findCitizen = await User.findOne({emailAddress: emailAddress})
+        if(!findCitizen){
+            return res.status(400).json({
+                status: "failed", 
+                message: "incorrect username/password"
+            })
+
+        }
         const comparedPassword = await comparePassword(password, findCitizen.password)
         if(!comparedPassword || !findCitizen){
             return res.status(400).json({
                 status: "failed", 
-                message: "incorrect username/password"})
+                message: "incorrect username/password"
+            })
         }
 
         // user assigned a jwt session token

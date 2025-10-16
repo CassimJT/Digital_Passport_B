@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import { hashPassword } from '../utils/helpers.mjs';
 import Nrb from "../models/Nrb.mjs";
-//import { errorMonitor } from 'nodemailer/lib/xoauth2';
+import { errorMonitor } from 'nodemailer/lib/xoauth2';
 
   const { Schema, model } = mongoose;
 

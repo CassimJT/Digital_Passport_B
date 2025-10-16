@@ -45,7 +45,7 @@ export const getUserById = async (req,res, next)=> {
 export const getMyProfile = async (req,res,next)=> {
     try {
         const id = req.body.id
-        const userProfile = await User.findOne(id)
+        const userProfile = await User.findById(id)
 
         if(!userProfile){
             return res.status(404).json({
@@ -67,11 +67,10 @@ export const getMyProfile = async (req,res,next)=> {
 //logic to update user profile
 export const updateUserProfile = async (req,res, next)=> {
     try{
-    const {userId,name,email,profileBio,profileAvatar} = req.body;
-    const updates = {name,email,profileBio,profileAvatar}
-
+    const {userId,emailAddress, residentialAddress} = req.body;
+    const updates = {emailAddress,residentialAddress}
     // Define allowed fields for update
-    const allowedUpdates = ['name', 'email', 'profileBio', 'profileAvatar'];
+    const allowedUpdates =  ['emailAddress','residentialAddress'];
     const updateKeys = Object.keys(updates);
     const isValidUpdate = updateKeys.every(key => allowedUpdates.includes(key));
 
@@ -81,7 +80,10 @@ export const updateUserProfile = async (req,res, next)=> {
 
     const user = await User.findByIdAndUpdate(
       userId,
-      { $set: updates }, // Use $set for partial updates
+      { $set: {
+        emailAddress: emailAddress,
+        residentialAddress:residentialAddress} 
+     }, // Use $set for partial updates
       { new: true} // Return updated document
     );
 
@@ -94,7 +96,10 @@ export const updateUserProfile = async (req,res, next)=> {
 
     return res.status(200).json({
         status: "success", 
-        message: "profile updated succesfully" 
+        message: {
+            message:"profile updated succesfully", 
+            updatedProfile: user
+        }
     });
 
   } catch (error) {

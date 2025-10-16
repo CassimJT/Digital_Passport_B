@@ -3,13 +3,14 @@ import { upload } from './multerConfig.mjs';
 
 // USER VALIDATION
 export const registerUserSchema = Joi.object({
-  nationalId: Joi.string().required(),
-  password: Joi.string().required(),
   residentialAddress:{
     district: Joi.string().required(),
     traditionalauthority: Joi.string().required(),
     village: Joi.string().required()
   },
+  nationalId: Joi.string().required(),
+  password: Joi.string().required(),
+  emailAddress: Joi.string().email().required(),
   createdAt:Joi.date()
 
 
