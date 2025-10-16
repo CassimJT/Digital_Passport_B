@@ -145,3 +145,35 @@ ENDPOINTS / URLs
 			}
 			
 </pre>
+
+
+<pre>>
+	http://localhost:5000/api/auth/register
+
+		if(citizenNotFound || OtpNotFound)
+			{
+				status: 400
+				status: "Failed"
+				message: "OTP or validation failed"
+			},
+
+		if(applicantNotFound)
+			{
+				status: 400
+				status: "Failed"
+				message: "Applicant not saved"
+			},
+		if(registered)
+			{
+				status: 200
+				status: "Success"
+				message: "Applicant successfully registered"
+			},
+		else
+			catch(error)
+			{
+				next(error)
+			}
+			
+
+</pre>
