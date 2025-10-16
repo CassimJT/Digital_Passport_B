@@ -6,6 +6,7 @@ This project aims to eradicate such as long waiting process by building a web-ba
 
 WORK FLOW FOR THE FIRST PART OF THE PROJECT.
 <pre>
+
 WEEK 1, FOUNDATION
 
 Wednesday (1/10/2025)
@@ -83,6 +84,7 @@ PARTICIPANTS OF THE PROJECT
 
 ENDPOINTS / URLs 
 <pre>
+	
 	Endpoints which client is expected to hit
 
 	URL :http://localhost:5000/api/auth//verfy-national-id  ---user provide national-id for verification
