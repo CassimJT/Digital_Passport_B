@@ -217,7 +217,7 @@ ENDPOINTS / URLs
 			}
 ```</pre>
 
-```json
+```js
 	http://localhost:5000/api/auth/request-reset
 
 		Expected inputs for requesting password reset
