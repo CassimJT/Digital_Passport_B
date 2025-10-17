@@ -192,7 +192,6 @@ ENDPOINTS / URLs
 
 ```
 
-
 ```js
 	http://localhost:5000/api/auth/login
 
