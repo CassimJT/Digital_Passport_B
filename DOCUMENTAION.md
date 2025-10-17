@@ -67,7 +67,7 @@ WEEK 2, FEATURES $ DELIVERY	|
 
 PARTICIPANTS OF THE PROJECT
 
- <pre>
+ ```js
  Light Bekete														 Bryan Nathupo									
      																	|---Models									
 	|---UserControllers													|---Documentation														        
@@ -80,10 +80,10 @@ PARTICIPANTS OF THE PROJECT
      |---socket integration												|----Database connection & configuration
           																|----Route Wiring	
 																		|----Testing & QA
-</pre>
+```
 
 ENDPOINTS / URLs 
-<pre>'''
+```js
 
 	Endpoints which client is expected to hit
 
@@ -143,13 +143,17 @@ ENDPOINTS / URLs
 				status: "Failed"
 				message: "Sending otp to citizen email failed"
 			},
-		else 
+		else
+			catch(error)
+				{
+					next(error)
+				}
 			
 			
-'''</pre>
+	```
 
 
-<pre>```
+```js
 
 	http://localhost:5000/api/auth/register
 
@@ -168,7 +172,7 @@ ENDPOINTS / URLs
 
 		if successful expected response-body is
 			{	
-				status": 200
+				status: 200
 			 	status:"success",
            	    message: "saved to db succesfully"
 			},
@@ -186,10 +190,10 @@ ENDPOINTS / URLs
 			}
 			
 
-```</pre>
+```
 
 
-<pre>```
+```js
 	http://localhost:5000/api/auth/login
 
 		Expected inputs for logging
@@ -200,7 +204,7 @@ ENDPOINTS / URLs
 
 		if successful expected response-body is
 			{	
-				status": 200
+				status: 200
 			 	status:"success",
 	            message: "Logged in"
 			},
@@ -215,7 +219,7 @@ ENDPOINTS / URLs
 			{
 				next(error)
 			}
-```</pre>
+```
 
 ```js
 	http://localhost:5000/api/auth/request-reset
@@ -246,7 +250,7 @@ ENDPOINTS / URLs
 
 ```
 
-<pre>```
+```js
 	http://localhost:5000/api/auth/reset-password
 
 		Expected inputs for resetting password
@@ -275,9 +279,9 @@ ENDPOINTS / URLs
 				}		
 
 		
-```</pre>
+```
 
-<pre>```
+```js
 	http://localhost:5000/api/auth/change-password
 
 		Expected inputs for changing password
@@ -313,4 +317,4 @@ ENDPOINTS / URLs
 					next(error)
 				}	
 
-```</pre>
+```
