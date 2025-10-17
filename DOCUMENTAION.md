@@ -83,32 +83,39 @@ PARTICIPANTS OF THE PROJECT
 </pre>
 
 ENDPOINTS / URLs 
-<pre>
+<pre>'''
 
 	Endpoints which client is expected to hit
 
 	URL :http://localhost:5000/api/auth//verfy-national-id  ---user provide national-id for verification
 	Method: POST
 
-	Expectations
-		if(idverified)
+	Expected inpunts for id verification
+		{
+			"phone":,
+			"emailAddress":,
+			"nationalId":
+		}
+
+	if successfull: expected response-body
 			{
 
 			status: 200
 			status: "Success"
-			message:"User exist"
+			message:"find user id"
 
 			},
 
-		if(citizenNOtFound)
-				
+	if not successful
 			{
 
-			status: 404
-			status: "Failed"
-			message:"Citizen not found"
+				status: 500
+				status: "Failed"
+				message: erro.message
+			}	
+			
 
-			},
+			
 
 	    if(citizenPhone && emailNOtFound)
 				
@@ -137,37 +144,40 @@ ENDPOINTS / URLs
 				message: "Sending otp to citizen email failed"
 			},
 		else 
-			{
-
-				status: 500
-				status: "Failed"
-				message: erro.message
-			}
 			
-</pre>
+			
+'''</pre>
 
 
-<pre>>
+<pre>```
+
 	http://localhost:5000/api/auth/register
 
-		if(citizenNotFound || OtpNotFound)
+		Expected inputs for registration 
 			{
-				status: 400
-				status: "Failed"
-				message: "OTP or validation failed"
+				"nationalId":,
+				"password":,
+				"emailAddress":,
+				"residentialAddress"
+				{
+					"district":,
+      				"traditionalauthority": ,
+      				"village":
+				}:
 			},
 
-		if(applicantNotFound)
-			{
-				status: 400
-				status: "Failed"
-				message: "Applicant not saved"
+		if successful expected response-body is
+			{	
+				status": 200
+			 	status:"success",
+           	    message: "saved to db succesfully"
 			},
-		if(registered)
-			{
-				status: 200
-				status: "Success"
-				message: "Applicant successfully registered"
+
+		if citizen not saved expected response-body
+			{ 
+				status: 400
+				status:"failed",
+                message: "citizen was not saved in db"
 			},
 		else
 			catch(error)
@@ -176,4 +186,131 @@ ENDPOINTS / URLs
 			}
 			
 
-</pre>
+```</pre>
+
+
+<pre>```
+	http://localhost:5000/api/auth/login
+
+		Expected inputs for logging
+			{
+				"emailAddress":,
+				"password":
+			},
+
+		if successful expected response-body is
+			{	
+				status": 200
+			 	status:"success",
+	            message: "Logged in"
+			},
+		if creditials not correct expected response-body
+			{
+				status: 400
+				status: "Failed"
+				message: "incorrect username/password"
+			}	
+		else
+			catch(error)
+			{
+				next(error)
+			}
+```</pre>
+
+<pre>```
+	http://localhost:5000/api/auth/request-reset
+
+		Expected inputs for requesting password reset
+			{
+				"emailAddress":
+			}
+
+		if password reset details not sent to emailAddress , expected response-body
+			{
+				status: 500
+				status: "failed"
+				message: "Internal server error"
+			}
+		if password resent details sent to emailAddress, expected response-body
+			{
+				status: 200
+				status: "success"
+				message: "Password reset request sent to your email address"
+			}
+		else
+			catch(error)
+				{
+					next(error)
+				}	
+
+
+```</pre>
+
+<pre>```
+	http://localhost:5000/api/auth/reset-password
+
+		Expected inputs for resetting password
+			{
+				"password":	
+			}
+
+		if password reset successfull, expected response-body
+			{
+				status:200
+				status: "Success"
+				message: "Password reset successfull"
+			}
+
+		if password reset failed, expected response-body
+			{
+				status: 500
+				status: "Success"
+				message: "Internal server error"
+			}
+
+		else
+			catch(error)
+				{
+					next(error)
+				}		
+
+		
+```</pre>
+
+<pre>```
+	http://localhost:5000/api/auth/change-password
+
+		Expected inputs for changing password
+			{
+				"currentPassword":, 
+				"newPassword":,
+				"confirmNewPassword":
+			}
+
+		if password reset successfull, expected response-body
+			{
+				status:200
+				status: "Success"
+				message: "Password updated successfully"
+			}
+
+		if password mismatch, expected response-body
+			{
+				status:500
+				status: "Failed"
+				message: "Mismatching passwords "
+			}	
+
+		if password fails to be update in the database , expected response-body
+			{
+				status:500
+				status: "Failed"
+				message: "Failed to reset their password in user db"
+			}
+		else
+			catch(error)
+				{
+					next(error)
+				}	
+
+```</pre>
