@@ -293,7 +293,7 @@ ENDPOINTS / URLs
 				}	
 
 ```
-	ENDPOINTS FOR USERCONTROLLER / URLs
+ENDPOINTS FOR USER OR ADMIN/ URLs
 
 ```js
 	http://localhost:5000/api/users/    -----to be hit by Admin in order to get all users
@@ -398,6 +398,7 @@ ENDPOINTS / URLs
 				{
 					next(error)
 				}
+
 	To update the UserProfile
 		
 		Expected inputs for updating UserProfile
@@ -423,6 +424,12 @@ ENDPOINTS / URLs
 				status: 400
 				status: "Failed"
 				message: "Invalid or empty update fields"
-			}	
+			}
+			
+		else
+			catch(error)
+				{
+					next(error)
+				}	
 
 ```
