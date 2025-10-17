@@ -26,43 +26,43 @@ Wednesday (1/10/2025)
 					|
 					Saturday(4/10/2025)
 					|
-					|----->Middleware (Auth, Role, ErroHandler, PassportAuth)
+					|---->Middleware (Auth, Role, ErroHandler, PassportAuth)
 							|
 ----------------------------|-----------------------------------------------------------------	
 WEEK 2, FEATURES $ DELIVERY	|
 							|
 							Sunday(5/10/2025)
 							|
-							|----->Route Wiring
+							|---->Route Wiring
 									|
 									Monday(6/10/2025)
 									|
 									|----->AuthCOntrollers (6 - 7/10/2025)
-												|
-												|
-												Wedsneday (8/10/2025)	
-												|
-												|----->UserControllers
-															|
-															Thursday(9/10/2025)
-															|
-															|----->PaymentController (9 - 10/10/2025)
-																	  |
-																	  Saturday (11/10/2025)
-																	  |
-																	  |----->Socket integration
-														     					|
-														     					Sunday (12/10/2025)
-														     					|
-														     					|----->NotificationControllers
-																						|
-																						Monday (13/10/2025)
-																						|
-																						|----->Testing $ QA
-																								  |
-																								  Tuesday (14/10/2025)
-																								  |									
-																								  |------->Deployment									
+											  |
+											  |
+											  Wedsneday (8/10/2025)	
+											  |
+											  |----->UserControllers
+														|
+														Thursday(9/10/2025)
+														|
+														|---->PaymentController (9 - 10/10/2025)
+																|
+																Saturday (11/10/2025)
+																|
+																|----->Socket integration
+														     			 |
+														     			 Sunday (12/10/2025)
+														     			 |
+														     			 |--->NotificationControllers
+																				|
+																				Monday (13/10/2025)
+																				|
+																				|---->Testing $ QA
+																						 |
+																						 Tuesday (14/10/2025)
+																						 |									
+																						 |---->Deployment									
 ```
 
 PARTICIPANTS OF THE PROJECT
@@ -135,11 +135,11 @@ ENDPOINTS / URLs
 				"password":,
 				"emailAddress":,
 				"residentialAddress"
-				{
-					"district":,
-      				"traditionalauthority": ,
-      				"village":
-				}:
+					{	
+						"district":,
+	      				"traditionalauthority": ,
+	      				"village":
+					}
 			},
 
 		if successful expected response-body is
@@ -291,5 +291,138 @@ ENDPOINTS / URLs
 				{
 					next(error)
 				}	
+
+```
+	ENDPOINTS FOR USERCONTROLLER / URLs
+
+```js
+	http://localhost:5000/api/users/    -----to be hit by Admin in order to get all users
+	Method: GET
+
+		if successfull, expected response-body
+			{
+				status: 200
+				status: "Success"
+				message: allUsers
+			}
+
+		if not successfull, expected response-body
+			{
+				status: 404
+				status: "Failed"
+				message: "Not found, failed to retrieve all users"
+			}
+
+		else
+			catch(error)
+				{
+					next(error)
+				}		
+```
+
+```js
+	http://localhost:5000/api/users/:id      -----for Admin to get user by ID
+	Method: GET
+
+		Expected inputs 
+			{
+				"id":
+			}
+
+		if successfull, expected response-body
+			{
+				status: 200
+				status: "Success"
+				message: oneUser
+			}
+		if not successfull, expected response-body
+			{
+				status: 404
+				status: "Failed"
+				message: "User not found"
+
+			}
+		else
+			catch(error)
+				{
+					next(error)
+				}
+
+	And also used to delete user
+
+		if deleting the user successful, expected response-body
+			{
+				status:200
+				status: "Success"
+				message: "user ${userId} got deleted successfully"
+			}
+
+		if not successfull, expected response-body
+			{
+				status: 500
+				status: "Failed"
+				message: "Internal server error while deleting user"
+			}
+		else
+			catch(error)
+				{
+					next(error)
+				}			
+
+```
+
+```js
+	http://localhost:5000/api/users/me/profile     ----- for user to get his/her profile
+	Method: GET
+
+		Expected inputs for getting profile
+			{
+				"id":
+			}
+
+		if successfull, expected response-body
+			{
+				status: 200
+				status: "Success"
+				message: UserProfile
+			}
+
+		if not successfull, expected response-body
+			{
+				status: 404
+				status: "Failed"
+				message: "Not found"
+			}		
+		else
+			catch(error)
+				{
+					next(error)
+				}
+	To update the UserProfile
+		
+		Expected inputs for updating UserProfile
+			{
+				"userId":, 
+				"emailAddress":, 
+				"residentialAddress":
+			}
+
+		if successfull, expected response-body
+			{
+				status:200
+				status: "Success"
+				message: 
+				  	{	
+           				 message:"Profile updated succesfully", 
+            			 updatedProfile: user
+        			}
+			}
+
+		if update creditials not legible, expected response-body
+			{
+				status: 400
+				status: "Failed"
+				message: "Invalid or empty update fields"
+			}	
 
 ```
