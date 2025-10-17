@@ -61,6 +61,7 @@
     "maritalStatus": "never married",
     "colourOfEyes": "Brown",
     "mobilePhone": "0999345678",
+    "emailAddress": "mary.phir23i@example.com",
     "residentialAddress": {
       "district": "Zomba",
       "traditionalauthority": "Mpokwa",
@@ -104,6 +105,7 @@
     "maritalStatus": "separated",
     "colourOfEyes": "Brown",
     "mobilePhone": "0999567890",
+    "emailAddress": "marerry.phiri@example.com",
     "residentialAddress": {
       "district": "Mulanje",
       "traditionalauthority": "Mabuka",
@@ -149,6 +151,7 @@
     "maritalStatus": "never married",
     "colourOfEyes": "Brown",
     "mobilePhone": "0999789012",
+    "emailAddress": "mary.phirewe3i@example.com",
     "residentialAddress": {
       "district": "Salima",
       "traditionalauthority": "Ndindi",
@@ -194,6 +197,7 @@
     "maritalStatus": "married",
     "colourOfEyes": "Brown",
     "mobilePhone": "0999901234",
+    "emailAddress": "mardgyy.phirti@example.com",
     "residentialAddress": {
       "district": "Chitipa",
       "traditionalauthority": "Mwenewenya",
