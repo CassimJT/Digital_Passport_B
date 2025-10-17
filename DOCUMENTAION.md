@@ -2,10 +2,10 @@ DIGITIZING MALAWI IMMIGRATION PERSONAL DETAILS COLLECTION PROCESS FOR PASSPORT M
 
 The collection of details for citizes who want to get a passport is really heart breaking as people spend days and nights waiting to get or submit a form, which can be done easly via internet.
 This project aims to eradicate such as long waiting process by building a web-based platform which integrates National Regestration Burue, and Immigration department... for smoother data collection..
-       --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+       ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 WORK FLOW FOR THE FIRST PART OF THE PROJECT.
-<pre>
+```js
 
 WEEK 1, FOUNDATION
 
@@ -63,16 +63,16 @@ WEEK 2, FEATURES $ DELIVERY	|
 																								  Tuesday (14/10/2025)
 																								  |									
 																								  |------->Deployment									
-</pre>
+```
 
 PARTICIPANTS OF THE PROJECT
 
- ```js
+```js
  Light Bekete														 Bryan Nathupo									
      																	|---Models									
 	|---UserControllers													|---Documentation														        
 	|---AuthControllers													|---Deployment                                  
-																		|--Testing & QA	    							
+																		|---Testing & QA	    							
    																		
 
  Titus Bokosi														CassimJT
@@ -87,75 +87,47 @@ ENDPOINTS / URLs
 
 	Endpoints which client is expected to hit
 
-	URL :http://localhost:5000/api/auth//verfy-national-id  ---user provide national-id for verification
+	http://localhost:5000/api/auth//verfy-national-id  ---user provide national-id for verification
 	Method: POST
 
-	Expected inpunts for id verification
-		{
-			"phone":,
-			"emailAddress":,
-			"nationalId":
-		}
-
-	if successfull: expected response-body
-			{
-
-			status: 200
-			status: "Success"
-			message:"find user id"
-
-			},
-
-	if not successful
-			{
-
-				status: 500
-				status: "Failed"
-				message: erro.message
-			}	
-			
-
-			
-
-	    if(citizenPhone && emailNOtFound)
-				
-			{
-
-			status: 404
-			status: "Failed"
-			message:"Email and number for verification not availabe with NRB, meet NRB personel"
-
-			},
-
-			OTP
-		if(citizenOtpNotSaved)
-			{
-
-				status: 400
-				status: "Failed"
-				message: "Saving OTP details failed"
-			}
-
-		if(citizenOtpNotSent)
-			{
-
-				status: 400
-				status: "Failed"
-				message: "Sending otp to citizen email failed"
-			},
-		else
-			catch(error)
+			Expected inpunts for id verification
 				{
-					next(error)
+					"phone":,
+					"emailAddress":,
+					"nationalId":
 				}
+
+			if successfull, expected response-body
+				{
+
+				status: 200
+				status: "Success"
+				message:"find user id"
+
+				},
+
+			if not successfull
+				{
+
+					status: 500
+					status: "Failed"
+					message: erro.message
+				}	
+
+			else
+				catch(error)
+					{
+						next(error)
+					}
 			
 			
-	```
+```
 
 
 ```js
 
 	http://localhost:5000/api/auth/register
+	Method: POST
 
 		Expected inputs for registration 
 			{
@@ -194,6 +166,7 @@ ENDPOINTS / URLs
 
 ```js
 	http://localhost:5000/api/auth/login
+	Method: POST
 
 		Expected inputs for logging
 			{
@@ -201,7 +174,7 @@ ENDPOINTS / URLs
 				"password":
 			},
 
-		if successful expected response-body is
+		if successful expected response-body 
 			{	
 				status: 200
 			 	status:"success",
@@ -222,6 +195,7 @@ ENDPOINTS / URLs
 
 ```js
 	http://localhost:5000/api/auth/request-reset
+	Method: POST
 
 		Expected inputs for requesting password reset
 			{
@@ -251,6 +225,7 @@ ENDPOINTS / URLs
 
 ```js
 	http://localhost:5000/api/auth/reset-password
+	Method: POST
 
 		Expected inputs for resetting password
 			{
@@ -282,6 +257,7 @@ ENDPOINTS / URLs
 
 ```js
 	http://localhost:5000/api/auth/change-password
+	Method: POST
 
 		Expected inputs for changing password
 			{
