@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import User from '../models/User.mjs';
+import { hashPassword } from '../utils/helpers.mjs';
 
 dotenv.config();
 const MONGO_URL_CLASTER  = process.env.MONGO_URL_CLASTER;
@@ -22,6 +23,7 @@ export default connectDB;
 export const createSuperUser = async () => {
   try {
     const existingAdmin = await User.findOne({ role: "superadmin" });
+    const hashedPassword = await hashPassword(process.env.SUPER_ADMIN_PASSWORD)
     if (existingAdmin) {
       console.log("Already have superadmin");
       return; 
@@ -32,7 +34,7 @@ export const createSuperUser = async () => {
       lastname: "awakeyaAdmin",
       username: "admin",
       email: process.env.SUPER_ADMIN_EMAIL,
-      password: process.env.SUPER_ADMIN_PASSWORD,
+      password: hashPassword,
       role: process.env.SUPER_ADMIN_ROLE || "superadmin"
     });
 

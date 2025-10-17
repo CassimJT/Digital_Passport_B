@@ -34,13 +34,5 @@ import Nrb from "../models/Nrb.mjs";
     }
 });
 
-/*userSchema.pre("save",async function(next) {
-    if(!this.isModified("password")){
-      return next();
-    }else{
-       this.password = await hashPassword(this.password);
-    }
-    next();
-})*/
 
 export default model('User', userSchema);

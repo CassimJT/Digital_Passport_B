@@ -1,7 +1,6 @@
 import express from 'express';
 import {
   getPaymentsByUser,
-  getPaymentById,
   initPayment,
   webhookHandler,
   verify,
@@ -25,8 +24,6 @@ router.post("/cancel",cancelPayment );
 //Webhook (asynchronous). IMPORTANT: raw body ONLY for this route.(for receiving notificaton)
 router.post( "/webhook", express.raw({ type: "application/json" }),webhookHandler)
 
-// Get payment by ID
-router.get('/:id', authenticateJWT, getPaymentById);
 
 // Get user (cleint) payments
 router.get('/user/:userId', authenticateJWT, checkRole(['client']), getPaymentsByUser);
