@@ -3,21 +3,12 @@ import mongoose from 'mongoose';
 const { Schema, model, Types } = mongoose;
 
 const paymentSchema = new Schema({
-  patient: {
+  client: {
     type: Types.ObjectId,
     ref: 'User',
     required: true
   },
-  provider: {
-    type: Types.ObjectId,
-    ref: 'ProviderProfile',
-    required: true
-  },
-  booking: {
-    type: Types.ObjectId,
-    ref: 'Booking',
-    required: true
-  },
+  
   amount: {
     type: Number,
     required: true,
@@ -29,7 +20,7 @@ const paymentSchema = new Schema({
   },
   paymentMethod: {
     type: String,
-    enum: ['card', 'paypal', 'stripe', 'cash', 'other'],
+    enum: ['card', 'TNM', 'Airtel'],
     default: 'card'
   },
   status: {
