@@ -1,100 +1,298 @@
 import Payment from "../models/Payment.mjs";
 import { pcFetch } from "../utils/helpers.mjs";
+import Imigration from "../models/Imigration.mjs";
+
+const WEBHOOK_SECRET = process.env.PAYCHANGU_WEBHOOK_SECRET;
+const CURRENCY = process.env.PAYCHANGU_CURRENCY || "MWK";
+const BACKEND_URL = process.env.BACKEND_URL;
+const FRONTEND_URL = process.env.FRONTEND_URL;
+const CALLBACK_URL = process.env.CALLBACK_URL
 
 //logic to initialize the payment
-export const initPayment = async (req,res)=> {
+export const initPayment = async (req, res, next) => {
   try {
-    const { amount, paymentMethod, description, currency = "MWK", callback_url, return_url } = req.body;
-    if (!amount || !paymentMethod || !description || !callback_url || !return_url)
-      return res.status(400).json({ message: "Missing required fields" });
+    const { passportID, passportFee } = req.body;
+    const clientId = req.user._id;
+    
+    if (!passportID || !passportFee) {
+      return res.status(400).json({
+        success: false,
+        message: "passportID and fee is required",
+      });
+    }
 
-    const transactionid = `tx_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
-    const payload = { amount: amount.toString(), currency, callback_url, return_url, tx_ref: transactionid };
+    const findPassportData = await Imigration.findById(passportID)
+      .populate({
+        path: "client",
+        populate: {
+          path: "Nrb"
+        }
+      });
 
-    const data = await pcFetch("/payment", { method: "POST", body: JSON.stringify(payload) });
+    if (!findPassportData) {
+      return res.status(404).json({
+        success: false,
+        message: "Passport Data not found",
+      });
+    }
 
-    await Payment.create({ payer: req.user?._id, amount, currency, paymentMethod, transactionid, description, status: "pending" });
+    if (String(clientId) !== String(findPassportData.client._id)) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to make a payment for this Passport",
+      });
+    }
 
-    return res.status(200).json({ status: "success", message: "Payment initialized", checkout_url: data.data.checkout_url });
-  } catch (error) {
-    console.error("initPayment:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    const amount = passportFee;
+    const tx_ref = `PS-${findPassportData._id}-${Date.now()}`;
+
+    const payload = {
+      amount: String(amount),
+      currency: CURRENCY,
+      email: findPassportData.client?.email,
+      first_name: findPassportData.client?.firstname,
+      last_name: findPassportData.client?.lastname,
+      callback_url: CALLBACK_URL,
+      return_url: FRONTEND_URL,
+      tx_ref,
+    };
+
+    // Call PayChangu API
+    const resp = await pcFetch("/payment", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+
+    const checkoutUrl = resp?.data?.checkout_url;
+    if (!checkoutUrl) throw new Error("No checkout_url returned by PayChangu");
+
+    // Saving
+    const newPayment = new Payment({
+      client: clientId,
+      amount: amount,
+      currency: CURRENCY,
+      paymentMethod: 'card', 
+      status: 'pending',
+      paymentStatus: 'pending',
+      paymentRef: tx_ref,
+      transactionId: tx_ref, 
+      createdAt: new Date()
+    });
+
+    await newPayment.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Checkout session created",
+      checkout_url: checkoutUrl,
+      tx_ref,
+      paymentId: newPayment._id 
+    });
+  } catch (err) {
+    next(err);
   }
-}
-
-//logic to get payment by User
-export const getPaymentsByUser = async (req,res)=> {
-  try {
-    const payments = await Payment.find({ payer: req.params.userId }).sort({ createdAt: -1 });
-    return res.status(200).json({ status: "success", message: "Payments fetched", data: payments });
-  } catch (error) {
-    console.error("getPaymentsByUser:", error);
-    return res.status(500).json({ message: "Internal server error" });
-  }
-}
-
-//logic to get payment by Id
-export const getPaymentById = async (req,res)=> {
-  try {
-    const payment = await Payment.findById(req.params.id);
-    if (!payment) return res.status(404).json({ message: "Payment not found" });
-    return res.status(200).json({ status: "success", message: "Payment fetched", data: payment });
-  } catch (error) {
-    console.error("getPaymentById:", error);
-    return res.status(500).json({ message: "Internal server error" });
-  }
-}
-
-//webhook logic
-export const webhookHandler = async (req,res)=> {
-  try {
-    const event = JSON.parse(req.body.toString());
-    if (!event?.data?.tx_ref) return res.status(400).json({ message: "Invalid payload" });
-
-    const payment = await Payment.findOne({ transactionid: event.data.tx_ref });
-    if (!payment) return res.status(404).json({ message: "Payment not found" });
-
-    payment.status = event.data.status || payment.status;
-    await payment.save();
-
-    return res.status(200).json({ status: "success", message: "Webhook processed" });
-  } catch (error) {
-    console.error("webhookHandler:", error);
-    return res.status(500).json({ message: "Internal server error" });
-  }
-}
+};
 
 //logic to verify payment
-export const verify = async (req,res)=> {
+//  Verify after redirect (callback_url) to be tested
+/*the redirect is not currently not working on local host to be tested propary when the backend is hosted */
+export const verify = async (req, res, next) => {
   try {
-    const { transactionid } = req.query;
-    if (!transactionid) return res.status(400).json({ message: "Transaction ID required" });
+    const { tx_ref, status } = req.query;
+    
+    if (!tx_ref) {
+      return res.status(400).json({
+        success: false,
+        message: "tx_ref missing"
+      });
+    }
 
-    const data = await pcFetch(`/verify-payment/${transactionid}`);
-    const payment = await Payment.findOneAndUpdate({ transactionid }, { status: data.data.status }, { new: true });
+    const verifyResponse = await pcFetch(`/verify-payment/${encodeURIComponent(tx_ref)}`, { 
+      method: "GET" 
+    });
 
-    return res.status(200).json({ status: "success", message: "Payment verified", data: payment });
-  } catch (error) {
-    console.error("verify:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    const isSuccess = verifyResponse?.status === "success" && verifyResponse?.data?.status === "success";
+    const amount = verifyResponse?.data?.amount;
+    const currency = verifyResponse?.data?.currency;
+
+    const foundPayment = await Payment.findOne({ paymentRef: tx_ref });
+    
+    if (foundPayment) {
+      if (isSuccess) {
+        if (Number(foundPayment.amount) === Number(amount) && currency === CURRENCY) {
+          foundPayment.status = "completed";
+          foundPayment.paidAt = new Date();
+        } else {
+          foundPayment.status = "failed";
+        }
+      } else {
+        foundPayment.status = "failed";
+      }
+
+      if (verifyResponse?.data?.transaction_id) {
+        foundPayment.transactionId = verifyResponse.data.transaction_id;
+      }
+
+      await foundPayment.save();
+
+      // UPDATE IMMIGRATION STATUS 
+      if (isSuccess && foundPayment.status === "completed") {
+        // Option 1: If you stored passport reference in payment
+        if (foundPayment.passport) {
+           await Imigration.findOneAndUpdate(
+            { client: foundPayment.client },
+            { paymentStatus: "completed" },
+            { new: true }
+          );
+        } 
+      
+      }
+     
+    }
+    // Choose either JSON response OR redirect 
+    if (req.headers['content-type'] === 'application/json' || 
+        req.headers['accept']?.includes('application/json')) {
+      return res.status(200).json({ 
+        success: isSuccess, 
+        verification: verifyResponse,
+        payment: foundPayment 
+      });
+    } else {
+      // Redirect for browser requests
+      const dest = isSuccess
+        ? `${FRONTEND_URL}/payment/success?tx_ref=${encodeURIComponent(tx_ref)}`
+        : `${FRONTEND_URL}/payment/failed?tx_ref=${encodeURIComponent(tx_ref)}&status=${encodeURIComponent(status || "failed")}`;
+      
+      return res.redirect(dest);
+    }
+
+  } catch (err) {
+    next(err);
   }
-}
+};
 
-//logic to cancel pyment
-export const cancelPayment = async (req,res)=> {
+//webhook logic
+export const webhookHandler = async (req, res, next) => {
   try {
-    const { transactionid } = req.body;
-    if (!transactionid) return res.status(400).json({ message: "Transaction ID required" });
+    // Verify signature (HMAC-SHA256 of raw body using WEBHOOK_SECRET), header name: 'Signature'
+    /**this is was ensipired from pychangu documentation */
+    const signatureHeader = req.header("Signature") || "";
+    const raw = req.body; 
+    if (!WEBHOOK_SECRET) {
+      console.warn("No PAYCHANGU_WEBHOOK_SECRET configured");
+      return res.status(400).send("Webhook secret not configured");
+    }
 
-    const payment = await Payment.findOne({ transactionid });
-    if (!payment) return res.status(404).json({ message: "Payment not found" });
+    // Compute HMAC
+    const crypto = await import("crypto");
+    const computed = crypto.createHmac("sha256", WEBHOOK_SECRET).update(raw).digest("hex");
+    if (computed !== signatureHeader) {
+      console.warn("Invalid webhook signature");
+      return res.status(400).send("Invalid signature");
+    }
 
-    payment.status = "failed";
+    // Parse JSON after signature check
+    const event = JSON.parse(raw.toString("utf8"));
+
+    // Example shapes (see docs), we care about tx_ref & status
+    const txRef = event?.data?.tx_ref || event?.tx_ref;
+    const status = event?.data?.status || event?.status;
+
+    if (!txRef) return res.status(200).send("ok"); // nothing to do
+
+    return res.status(200).send("ok");
+  } catch (err) {
+    next(err)
+  }
+};
+
+// Logic to get payment by User
+export const getPaymentsByUser = async (req, res, next) => {
+  try {
+    const clientId = req.user._id; 
+    const { status } = req.query;
+
+    // Build filter object
+    const filter = { client: clientId };
+    if (status) {
+      filter.status = status;
+    }
+
+    // Get all payments with population
+    const payments = await Payment.find(filter)
+      .populate('passport', 'passportType serviceType bookletType paymentStatus') 
+      .sort({ createdAt: -1 }) 
+      .lean();
+
+    return res.status(200).json({
+      success: true,
+      data: payments,
+      count: payments.length
+    });
+
+  } catch (error) {
+      next(error)
+  }
+};
+
+// Logic to cancel payment
+export const cancelPayment = async (req, res, next) => {
+  try {
+    const { paymentId } = req.params;
+    const clientId = req.user._id;
+
+    if (!paymentId) {
+      return res.status(400).json({
+        success: false,
+        message: "Payment ID is required"
+      });
+    }
+
+    // Find the payment
+    const payment = await Payment.findOne({
+      _id: paymentId,
+      client: clientId
+    });
+
+    if (!payment) {
+      return res.status(404).json({
+        success: false,
+        message: "Payment not found or you are not authorized to cancel this payment"
+      });
+    }
+
+    // Checking if payment can be cancelled
+    if (payment.status !== 'pending') {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot cancel payment with status: ${payment.status}. Only pending payments can be cancelled.`
+      });
+    }
+
+    // Update payment status to failed
+    payment.status = 'failed';
     await payment.save();
 
-    return res.status(200).json({ status: "success", message: "Payment cancelled" });
+    //update the associated immigration record if it exists
+    if (payment.client) {
+      await Imigration.findByIdAndUpdate(
+        payment.client,
+        { paymentStatus: 'failed' },
+        { new: true }
+      );
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Payment cancelled successfully",
+      data: {
+        paymentId: payment._id,
+        status: payment.status,
+        paymentRef: payment.paymentRef
+      }
+    });
+
   } catch (error) {
-    console.error("cancelPayment:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    next(err)
   }
-}
+};
