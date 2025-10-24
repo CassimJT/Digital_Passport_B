@@ -14,6 +14,7 @@ import {
     comparePassword,
     maskEmail 
 } from "../utils/helpers.mjs"
+import RefreshToken from "../models/RefreshToken.mjs"
 
 
 
@@ -135,16 +136,18 @@ export const loginUser = async (req,res, next)=> {
         */
         const loginSessionToken = generateAccessToken(findCitizen)
         const refreshLoginToken = generateRefreshToken(findCitizen)
-        const storeRefreshToken = await RefreshToken.findByIdAndUpdate(
-                                    refreshLoginToken._id,
-                                    {$set:{refreshLoginToken: refreshLoginToken }, new: true})
+        const tokenPayload = new RefreshToken({
+            user:findCitizen._id,
+            token: loginSessionToken
+        })
+        const storeRefreshToken = await tokenPayload.save()
         
-        const tokenPayload = {
+        const coookieTokenPayload = {
             refreshToken: refreshLoginToken,
             tokenId:storeRefreshToken._id
         }
 
-        res.cookie("refreshLoginToken",tokenPayload,{
+        res.cookie("refreshLoginToken",coookieTokenPayload,{
             httpOnly:true,
             secure:true,
             expires:thirtyDaysLater,
@@ -170,10 +173,10 @@ export const logoutUser = async (req,res,next)=> {
     try {
         const authHeader = req.headers.authorization;
         const {refreshToken, tokenId} = req.cookie.refreshLoginToken
-        const token = authHeader.split(' ')[1];
-        const decoded = verifyAccessToken(token);
+        const accessToken = authHeader.split(' ')[1];
+        const accessTokenDecoded = verifyAccessToken(accessToken);
         const refreshTokenDecoded = verifyRefreshToken(refreshToken)
-        if ((!decoded && !authHeader && !(authHeader.startsWith('Bearer '))) && !refreshTokenDecoded) {
+        if ((!accessTokenDecoded && !authHeader && !(authHeader.startsWith('Bearer '))) && !refreshTokenDecoded) {
             return res.status(400).json({
                 status: "failed", 
                 message: {
@@ -200,6 +203,7 @@ export const logoutUser = async (req,res,next)=> {
 export const refreshToken = async (req,res, next)=> {
     try {
         const {userId} = req.body.userId
+        const {tokenId} = req.cookie.refreshLoginToken
         const refreshLoginToken = generateRefreshToken(userId)
         if(!refreshToken){
             return res.status(500).json({
@@ -208,13 +212,11 @@ export const refreshToken = async (req,res, next)=> {
             })
         }
 
-        const storeRefreshToken = await RefreshToken.findByOneAndUpdate(
-                                            userId,
-                                            {$set:{refreshLoginToken:refreshToken},new:true})
+        await RefreshToken.findByOneAndUpdate(tokenId,{$set:{token:refreshToken},new:true})
 
         const tokenPayload = {
             refreshToken: refreshLoginToken,
-            tokenId:storeRefreshToken._id
+            tokenId:tokenId
         }
 
         res.cookie("refreshLoginToken",tokenPayload,{
