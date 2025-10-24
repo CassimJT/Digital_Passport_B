@@ -2,14 +2,18 @@ import User from "../models/User.mjs"
 import Nrb from "../models/Nrb.mjs"
 import Otp from "../models/Otp.mjs"
 import sendEmail  from "../utils/sendEmail.mjs"
-import { generateAccessToken, 
-         generateRefreshToken,
-         verifyAccessToken } from "../utils/jwt.mjs"
-import {generateRandomCode, 
-        hashPassword,
-        comparePassword,
-        maskEmail 
-        } from "../utils/helpers.mjs"
+import { 
+    generateAccessToken, 
+    generateRefreshToken,
+    verifyAccessToken,
+    verifyRefreshToken 
+} from "../utils/jwt.mjs"
+import {
+    generateRandomCode, 
+    hashPassword,
+    comparePassword,
+    maskEmail 
+} from "../utils/helpers.mjs"
 
 
 
@@ -34,56 +38,43 @@ export const verfyNationalId = async (req,res, next)=> {
             otp: generatedOTP,
             phone:phone
         })
-        if (!saveOTPDetails){
-            return res.status(500).json({
-            status: "failed",
-            message: "Internal server error.Validatiton failed"
-          })
-        }
-
+       
         //saving otp details
         const savedCitizenOTP = saveOTPDetails.save()
-        if(!savedCitizenOTP){
-          return res.status(400).json({
-            status: "failed",
-            message: "saving otp details failed"
-          })
-        }
-
+        
         // preparing and sending the otp through email with nodemailer
-        const html = `<p> verification otp ${generatedOTP}</p>`
+        const html = `
+            <h1>Malawi Immigration<h1/>
+            <p> you are verification otp ${generatedOTP}</p>
+            <p>please do not share this code with anyone else</p>
+        `
         const subject = "Malawi Immigration"
-        const sendCitizenOTP = await sendEmail(findCitizen.email,subject,html)
-        if(!sendCitizenOTP){
-            return res.status(400).json({
-                status: "failed",
-                message: "sending email failed"}) 
-        }
+        await sendEmail(findCitizen.email,subject,html)
         
         return res.status(200).json({
             status: "success",
-            message:findCitizen._id})
+            message:savedCitizenOTP._id})
     } catch (error) {
         next(error)
     }
     
 }
 //Verify OPT
-export const verifyOTP =  async (req,res)=> {
+export const verifyOTP =  async (req,res,next)=> {
     try {
-        const{nationalId,phone, email, otp} = req.body
-        const verifiedOTP = await Otp.findOne({
-            nationalId:nationalId,
-            otp: otp,
-            phone:phone,
-            email:email
-            }    
-        )
+        const{userID, otp} = req.body
+        const verifiedOTP = await Otp.findByIdAndUpdate(userID,{$set:{status: "verified" }, new: true})
         if(!verifiedOTP){
-            return res.status(400).json({status:"failed"})
+            return res.status(404).json({
+                status:"failed",
+                message:" user not found"
+            })
         }
         
-        return res.status(200).json({status: "success"})
+        return res.status(200).json({
+            status: "success",
+            message: "ok"
+        })
 
     } catch (error) {
         next(error)
@@ -97,10 +88,9 @@ export const registerUser = async (req,res, next)=> {
     try {
         const {nationalId,password,emailAddress,residentialAddress} = req.validatedData
         const hashedPassword = await hashPassword(password)
-        console.log(`hashedpassword ${hashedPassword}`)
-        const findUserOTP = await Otp.findOne({nationalId})
+        const findUserOTP = await Otp.findById({nationalId})
         const findCitezen =  await Nrb.findById(findUserOTP.nationalId)
-        if(!findCitezen || !findUserOTP.otp){
+        if(!findCitezen || !findUserOTP.status==="verified"){
             return res.status(400).json({
                 status:"failed",
                 message:"otp or validated failed"
@@ -114,26 +104,11 @@ export const registerUser = async (req,res, next)=> {
             emailAddress: emailAddress,
             password: hashedPassword
         })
-
-        if(!saveCitizen){
-            return res.status(400).json({
-                status:"failed",
-                message:"citizen validation failed"
-            }) 
-        }
-
-
-        const savedCitizen = await saveCitizen.save()
-        if (!savedCitizen){
-              return res.status(400).json({
-                status:"failed",
-                message: "citizen was not saved in db"
-            })   
-        }
+        await saveCitizen.save()
 
          return res.status(200).json({
             status:"success",
-            message: "saved to db succesfully"})
+            message: "saved user succesfully"})
     } catch (error) {
         next(error)
         
@@ -144,20 +119,9 @@ export const loginUser = async (req,res, next)=> {
 
     try {
         const {emailAddress,password} = req.validatedData
-        if (!password || !emailAddress){
-            return res.status(400).json({
-                status: "failed",
-                message: "Bad request .Missing emailAddress/password"})
-        }
+        const thirtyDaysLater = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
 
         const findCitizen = await User.findOne({emailAddress: emailAddress})
-        if(!findCitizen){
-            return res.status(400).json({
-                status: "failed", 
-                message: "incorrect username/password"
-            })
-
-        }
         const comparedPassword = await comparePassword(password, findCitizen.password)
         if(!comparedPassword || !findCitizen){
             return res.status(400).json({
@@ -166,11 +130,27 @@ export const loginUser = async (req,res, next)=> {
             })
         }
 
-        // user assigned a jwt session token
+        /*
+        user assigned a jwt session token & refresh jwt token
+        */
         const loginSessionToken = generateAccessToken(findCitizen)
-
-        // user assigned a refresh jwt token
         const refreshLoginToken = generateRefreshToken(findCitizen)
+        const storeRefreshToken = await RefreshToken.findByIdAndUpdate(
+                                    refreshLoginToken._id,
+                                    {$set:{refreshLoginToken: refreshLoginToken }, new: true})
+        
+        const tokenPayload = {
+            refreshToken: refreshLoginToken,
+            tokenId:storeRefreshToken._id
+        }
+
+        res.cookie("refreshLoginToken",tokenPayload,{
+            httpOnly:true,
+            secure:true,
+            expires:thirtyDaysLater,
+            samSite: 'strict'
+
+        })
 
         return res.status(200).json({
             status: "success",
@@ -189,9 +169,11 @@ export const loginUser = async (req,res, next)=> {
 export const logoutUser = async (req,res,next)=> {
     try {
         const authHeader = req.headers.authorization;
+        const {refreshToken, tokenId} = req.cookie.refreshLoginToken
         const token = authHeader.split(' ')[1];
         const decoded = verifyAccessToken(token);
-        if (!decoded && !authHeader && !(authHeader.startsWith('Bearer '))) {
+        const refreshTokenDecoded = verifyRefreshToken(refreshToken)
+        if ((!decoded && !authHeader && !(authHeader.startsWith('Bearer '))) && !refreshTokenDecoded) {
             return res.status(400).json({
                 status: "failed", 
                 message: {
@@ -200,6 +182,8 @@ export const logoutUser = async (req,res,next)=> {
                 }
             })
         }
+
+        await RefreshToken.findByIdAndUpdate(tokenId,{$set:{revoked: true}})
 
         return res.status(200).json({
             status: 'success',
@@ -216,13 +200,30 @@ export const logoutUser = async (req,res,next)=> {
 export const refreshToken = async (req,res, next)=> {
     try {
         const {userId} = req.body.userId
-        const refreshToken = generateRefreshToken(userId)
+        const refreshLoginToken = generateRefreshToken(userId)
         if(!refreshToken){
-            return res.status(400).json({
+            return res.status(500).json({
                 status: "failed",
                 message: "Server internal error"
             })
         }
+
+        const storeRefreshToken = await RefreshToken.findByOneAndUpdate(
+                                            userId,
+                                            {$set:{refreshLoginToken:refreshToken},new:true})
+
+        const tokenPayload = {
+            refreshToken: refreshLoginToken,
+            tokenId:storeRefreshToken._id
+        }
+
+        res.cookie("refreshLoginToken",tokenPayload,{
+            httpOnly:true,
+            secure:true,
+            expires:thirtyDaysLater,
+            samSite: 'strict'
+
+        })
 
         return res.status(200).json({
             status: "success",
@@ -241,16 +242,14 @@ export const requestPasswordReset = async (req,res, next)=> {
     try {
         const {email} = req.validatedData
         const otp = generateRandomCode()
-        const html = `<p>you requested to change the password here is the otp ${otp} </p>`
+        const html = `
+        <h1>Malawi Immigratiin</h1>
+        <p>you requested to change the password here is the otp ${otp} </p>
+        <p>Please do not share this code with anyone else</p>
+        `
         const subject = "Immigration Request for Password Reset"
         
-        const passwordResetRequest = sendEmail(email,subject,html)
-        if(!passwordResetRequest){
-            return res.status(500).json({
-                status: "failed",
-                message: "Internal Server Error"
-            })
-        }
+        await sendEmail(email,subject,html)
         const maskedEmail = maskEmail(email)
         return res.status(200).json({
             status: "success",
@@ -267,15 +266,16 @@ export const requestPasswordReset = async (req,res, next)=> {
 export const resetPassword = async (req,res,next)=> {
     try {
         const userID = req.user._id
-        const {password} = req.validatedData
-        const resetHashedPassword = hashPassword(password)
-        const updateUser = await User.findByIdAndUpdate(userID,{$set:{password: resetHashedPassword }, new: true})
-        if(!updateUser){
-            return res.status(500).json({
-                status: "failed",
-                message: "Internal Server Error"
-            })
+        const {password,confirmPasword} = req.validatedData
+        if(password !== confirmPassword){
+            return res.status(400).json({
+            status: "failed",
+            message: "mismatching passwords"
+         })
         }
+        const resetHashedPassword = hashPassword(password)
+        await User.findByIdAndUpdate(userID,{$set:{password: resetHashedPassword }, new: true})
+        
          return res.status(200).json({
             status: "success",
             message: "resetted their password successfully"
@@ -291,19 +291,16 @@ export const changePassword = async (req,res)=> {
         const { currentPassword, newPassword, confirmNewPassword} = req.validatedData
         const user = await User.findOne(userID)
         const changePasswordHashed = hashPassword(newPassword)
-        if(!user || !(comparePassword(currentPassword,user.password)) || !(comparePassword(confirmNewPassword,changePasswordHashed))){
+        if(!user || !(comparePassword(currentPassword,user.password)) || 
+           !(comparePassword(confirmNewPassword,changePasswordHashed))
+        ){
             return res.status(500).json({
             status: "failed",
             message: "mismatching passwords"
             })
         }
-        const updateUser = await User.findByIdAndUpdate(userID,{$set:{password: changePasswordHashed }, new: true})
-        if(!updateUser){
-            return res.status(500).json({
-            status: "failed",
-            message: "failed to reset their password in user db"
-            })
-        }
+        await User.findByIdAndUpdate(userID,{$set:{password: changePasswordHashed }, new: true})
+        
         return res.status(200).json({
             status: "success",
             message: "password updated successfully"
