@@ -23,6 +23,13 @@ const otpSchema = new Schema({
     type: String,
     required: true,
   },
+  status: {
+    type: String,
+    default: "not verified",
+    required: true,
+    lowercase: true,
+    trim: true,
+  },
   createdAt: {
     type: Date,
     default: Date.now,
