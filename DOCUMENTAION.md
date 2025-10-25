@@ -508,3 +508,40 @@ Deleting user, Super admin can delete user
 			}	
 
 ```
+ENDPOINTS FOR PAYMENT 
+```js
+	http://localhost:5000/api/payments/init      ---url for initiating the payment 
+
+		Expected inputs for payment initiation
+			{
+				"passportID":, 
+				"passportFee ":
+			}
+
+		if successfull expected response-body 
+			{
+				status: 200
+				status: "Success"
+				message: "Checkout session created"
+			}
+
+		other expected response-bodies in terms of failure
+			{
+				status: 400
+				status: "Failed"
+				message: "passportID and fee is required"
+			}	
+
+			{
+				status: 404
+				status: "Failed"
+				message: "Passport Data not found"
+			}
+
+			{
+				status: 403
+				status: "Failed"
+				message: "You are not authorized to make a payment for this passport"
+			}
+
+```
