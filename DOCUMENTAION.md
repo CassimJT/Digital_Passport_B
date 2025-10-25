@@ -106,7 +106,7 @@ ENDPOINTS / URLs
 
 				},
 
-			if not successfull
+			other expected response-bodies in terms of failure
 				{
 
 					status: 500
@@ -114,14 +114,14 @@ ENDPOINTS / URLs
 					message: erro.message
 				}
 
-			when otp not saved, response-body
+		
 				{ 
 					status: 404
 					status:"failed",
 	                message: "user not found"
 				},
 
-			if citizen saved expected response-body
+	
 				{ 
 					status: 200
 					status:"Success",
@@ -320,7 +320,7 @@ Changing password, the provided passwords need to be validated
 				message: "Password updated successfully"
 			}
 
-		other expected response-bodies
+		other expected response-bodies in terms of failure
 			{
 				status:400
 				status: "Failed"
@@ -347,7 +347,7 @@ ENDPOINTS FOR USER OR ADMIN/ URLs
 				message: allUsers
 			}
 
-		other expected response-bodies
+		other expected response-bodies in terms of failure
 			{
 				status: 404
 				status: "Failed"
@@ -377,7 +377,7 @@ Getting user by id to be performed by Super Admin
 				status: "Success"
 				message: oneUser
 			}
-		other expected response-bodies
+		other expected response-bodies in terms of failure
 			{
 				status: 404
 				status: "Failed"
@@ -474,6 +474,34 @@ Getting user profile, user will be able to get his/her profile if successful
 				message: "Internal server error, user not updated"
 			}
 			
+		catch(error)
+			{
+				next(error)
+			}	
+
+```
+Deleting user, Super admin can delete user
+```js
+	http://localhost:5000/api/users/id
+
+		Expected input 
+			{
+				"usedId": 
+			}
+
+		if successfull, expected response-body
+			{
+				status: 200
+				status: "Success"
+				message: "user ${userId} got deleted successfully"
+			}
+
+		other expected response bodies in terms of failure
+			{
+				status: 500
+				status: "failed"
+				message: "Internal server error occured while deleting the a user "
+			}
 		catch(error)
 			{
 				next(error)
