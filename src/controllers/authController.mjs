@@ -15,6 +15,7 @@ import {
     maskEmail 
 } from "../utils/helpers.mjs"
 import RefreshToken from "../models/RefreshToken.mjs"
+import mongoose from "mongoose"
 
 
 
@@ -33,15 +34,18 @@ export const verfyNationalId = async (req,res, next)=> {
         const generatedOTP = generateRandomCode()
 
         //preparing otp details to be saved in otp collection
-        const saveOTPDetails = new Otp({
-            nationalId: findCitizen._id,
-            email: emailAddress,
-            otp: generatedOTP,
-            phone:phone
-        })
-       
-        //saving otp details
-        const savedCitizenOTP = saveOTPDetails.save()
+        const saveOTPDetails = await Otp.findOneAndUpdate(
+            {nationalId: findCitizen._id},
+            {email: emailAddress,
+             otp: generatedOTP,
+             phone
+            },
+            {
+                upsert: true, // creates one if document is not  found
+                new: true,
+                setDefaultsOnInsert:true
+            }
+        )
         
         // preparing and sending the otp through email with nodemailer
         const html = `
@@ -50,11 +54,15 @@ export const verfyNationalId = async (req,res, next)=> {
             <p>please do not share this code with anyone else</p>
         `
         const subject = "Malawi Immigration"
-        await sendEmail(findCitizen.email,subject,html)
+    //    const emailFeedback = await sendEmail(findCitizen.emailAddress,subject,html)
+    //    console.log(emailFeedback)
         
         return res.status(200).json({
             status: "success",
-            message:savedCitizenOTP._id})
+            body:{
+                userId:findCitizen._id,
+                emailAddress: findCitizen.emailAddress 
+            }})
     } catch (error) {
         next(error)
     }
@@ -63,8 +71,8 @@ export const verfyNationalId = async (req,res, next)=> {
 //Verify OPT
 export const verifyOTP =  async (req,res,next)=> {
     try {
-        const{userID, otp} = req.body
-        const verifiedOTP = await Otp.findByIdAndUpdate(userID,{$set:{status: "verified" }, new: true})
+        const{email, otp} = req.body
+        const verifiedOTP = await Otp.findOneAndUpdate({email,otp},{$set:{status: "verified" }}, {new: true})
         if(!verifiedOTP){
             return res.status(404).json({
                 status:"failed",
@@ -89,7 +97,7 @@ export const registerUser = async (req,res, next)=> {
     try {
         const {nationalId,password,emailAddress,residentialAddress} = req.validatedData
         const hashedPassword = await hashPassword(password)
-        const findUserOTP = await Otp.findById({nationalId})
+        const findUserOTP = await Otp.findOne({email: emailAddress})
         const findCitezen =  await Nrb.findById(findUserOTP.nationalId)
         if(!findCitezen || !findUserOTP.status==="verified"){
             return res.status(400).json({
@@ -117,10 +125,14 @@ export const registerUser = async (req,res, next)=> {
 }
 // logic to logout user
 export const loginUser = async (req,res, next)=> {
+    console.log("loggin in")
 
     try {
         const {emailAddress,password} = req.validatedData
-        const thirtyDaysLater = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
+        const now = new Date();
+        const thirtyDaysLater = now.setDate(now.getDate() + 30);
+        const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000;
+        console.log(thirtyDaysLater)
 
         const findCitizen = await User.findOne({emailAddress: emailAddress})
         const comparedPassword = await comparePassword(password, findCitizen.password)
@@ -136,22 +148,26 @@ export const loginUser = async (req,res, next)=> {
         */
         const loginSessionToken = generateAccessToken(findCitizen)
         const refreshLoginToken = generateRefreshToken(findCitizen)
-        const tokenPayload = new RefreshToken({
-            user:findCitizen._id,
-            token: loginSessionToken
-        })
-        const storeRefreshToken = await tokenPayload.save()
-        
-        const coookieTokenPayload = {
-            refreshToken: refreshLoginToken,
-            tokenId:storeRefreshToken._id
-        }
+        const storeRefreshToken = await RefreshToken.findOneAndUpdate(
+            {
+                user:findCitizen._id
+            },
+            {
+                token: loginSessionToken,
+                expiresAt: thirtyDaysLater
+            },
+            {
+                upsert:true,
+                new: true
+            }
+        )
+         
 
-        res.cookie("refreshLoginToken",coookieTokenPayload,{
+        res.cookie("refreshLoginToken",refreshLoginToken,{
             httpOnly:true,
-            secure:true,
-            expires:thirtyDaysLater,
-            samSite: 'strict'
+           // secure:true, // ---this will be used in deployment
+            expires:new Date(Date.now() + thirtyDaysInMs),
+            sameSite: 'strict'
 
         })
 
@@ -159,7 +175,7 @@ export const loginUser = async (req,res, next)=> {
             status: "success",
             message: {
                 token: loginSessionToken,
-                userId: findCitizen._id,
+                userId: storeRefreshToken._id,
                 redirectURL: "/dashboard" // to be replace by a real url
             }
         })
@@ -172,7 +188,16 @@ export const loginUser = async (req,res, next)=> {
 export const logoutUser = async (req,res,next)=> {
     try {
         const authHeader = req.headers.authorization;
-        const {refreshToken, tokenId} = req.cookie.refreshLoginToken
+        console.log(req.cookies.refreshLoginToken)
+        const refreshToken = req.cookies.refreshLoginToken
+        const userId = req.body.userId
+        if(!mongoose.Types.ObjectId.isValid(userId)){
+            return res.status(400).json({
+                status: "failed",
+                message: "invalid user"
+            })
+        }
+        const tokenId = new mongoose.Types.ObjectId(userId)
         const accessToken = authHeader.split(' ')[1];
         const accessTokenDecoded = verifyAccessToken(accessToken);
         const refreshTokenDecoded = verifyRefreshToken(refreshToken)
