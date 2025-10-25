@@ -112,7 +112,21 @@ ENDPOINTS / URLs
 					status: 500
 					status: "Failed"
 					message: erro.message
-				}	
+				}
+
+			when otp not saved, response-body
+				{ 
+					status: 404
+					status:"failed",
+	                message: "user not found"
+				},
+
+			if citizen saved expected response-body
+				{ 
+					status: 200
+					status:"Success",
+	                message: "Ok"
+				},	
 
 			else
 				catch(error)
@@ -142,25 +156,33 @@ ENDPOINTS / URLs
 					}
 			},
 
-		if successful expected response-body is
+		if successfull expected response-body is
 			{	
 				status: 200
 			 	status:"success",
-           	    message: "saved to db succesfully"
+           	    message: "saved user succesfully"
 			},
 
-		if citizen not saved expected response-body
+		other expectes response-bodies
+
 			{ 
-				status: 400
+				status: 404
 				status:"failed",
-                message: "citizen was not saved in db"
+                message: "Saving failed"
 			},
+
+			{
+				status: "404"
+				status: "failed"
+				message: "OTP or validation failed"
+			}
+
 		else
 			catch(error)
 			{
 				next(error)
 			}
-			
+
 
 ```
 
@@ -168,7 +190,7 @@ ENDPOINTS / URLs
 	http://localhost:5000/api/auth/login
 	Method: POST
 
-		Expected inputs for logging
+		Expected inputs for logging and validation is required
 			{
 				"emailAddress":,
 				"password":
@@ -192,7 +214,39 @@ ENDPOINTS / URLs
 				next(error)
 			}
 ```
+Refreshing token
+```js 
+	http://localhost:5000/api/auth/refresh-token
+	Method: POST
 
+		Expected inputs to refresh token
+			{
+				"userId":
+				"tokenId":
+			}
+
+		if successfull, expected response-body
+			{
+				status: 200
+				status: "Success"
+				message: "token refreshed"
+			}
+
+		Other expected response-body
+			{
+				status: 404
+				status: "Failed"
+				status: "Faile to refresh token"
+			}
+
+		else
+			catch(error)
+			{
+				next(error)
+			}
+				
+```
+Request to reset password
 ```js
 	http://localhost:5000/api/auth/request-reset
 	Method: POST
@@ -202,18 +256,13 @@ ENDPOINTS / URLs
 				"emailAddress":
 			}
 
-		if password reset details not sent to emailAddress , expected response-body
-			{
-				status: 500
-				status: "failed"
-				message: "Internal server error"
-			}
-		if password resent details sent to emailAddress, expected response-body
+		if successfull, expected response-body
 			{
 				status: 200
 				status: "success"
 				message: "Password reset request sent to your email address"
 			}
+			
 		else
 			catch(error)
 				{
@@ -222,14 +271,15 @@ ENDPOINTS / URLs
 
 
 ```
-
+Resetting password, the provided password need to be validated
 ```js
 	http://localhost:5000/api/auth/reset-password
 	Method: POST
 
 		Expected inputs for resetting password
 			{
-				"password":	
+				"password":,
+				"comfirmPassword":
 			}
 
 		if password reset successfull, expected response-body
@@ -239,22 +289,21 @@ ENDPOINTS / URLs
 				message: "Password reset successfull"
 			}
 
-		if password reset failed, expected response-body
+		other expected response-bodies
 			{
-				status: 500
-				status: "Success"
-				message: "Internal server error"
+				status: 404
+				status: "failed"
+				message: "Mismatching passwords"
 			}
 
-		else
-			catch(error)
+		catch(error)
 				{
 					next(error)
 				}		
 
 		
 ```
-
+Changing password, the provided passwords need to be validated
 ```js
 	http://localhost:5000/api/auth/change-password
 	Method: POST
@@ -273,21 +322,14 @@ ENDPOINTS / URLs
 				message: "Password updated successfully"
 			}
 
-		if password mismatch, expected response-body
+		other expected response-bodies
 			{
-				status:500
+				status:400
 				status: "Failed"
 				message: "Mismatching passwords "
 			}	
 
-		if password fails to be update in the database , expected response-body
-			{
-				status:500
-				status: "Failed"
-				message: "Failed to reset their password in user db"
-			}
-		else
-			catch(error)
+		catch(error)
 				{
 					next(error)
 				}	
