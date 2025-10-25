@@ -128,11 +128,11 @@ ENDPOINTS / URLs
 	                message: "Ok"
 				},	
 
-			else
-				catch(error)
-					{
-						next(error)
-					}
+			
+			catch(error)
+				{
+					next(error)
+				}
 			
 			
 ```
@@ -177,8 +177,7 @@ ENDPOINTS / URLs
 				message: "OTP or validation failed"
 			}
 
-		else
-			catch(error)
+		catch(error)
 			{
 				next(error)
 			}
@@ -239,8 +238,8 @@ Refreshing token
 				status: "Faile to refresh token"
 			}
 
-		else
-			catch(error)
+
+		catch(error)
 			{
 				next(error)
 			}
@@ -262,12 +261,11 @@ Request to reset password
 				status: "success"
 				message: "Password reset request sent to your email address"
 			}
-			
-		else
-			catch(error)
-				{
-					next(error)
-				}	
+
+		catch(error)
+			{
+				next(error)
+			}	
 
 
 ```
@@ -337,8 +335,9 @@ Changing password, the provided passwords need to be validated
 ```
 ENDPOINTS FOR USER OR ADMIN/ URLs
 
-```js
-	http://localhost:5000/api/users/    -----to be hit by Admin in order to get all users
+```js 
+
+	http://localhost:5000/api/users/    -----to be hit by Super Admin in order to get all users
 	Method: GET
 
 		if successfull, expected response-body
@@ -348,19 +347,20 @@ ENDPOINTS FOR USER OR ADMIN/ URLs
 				message: allUsers
 			}
 
-		if not successfull, expected response-body
+		other expected response-bodies
 			{
 				status: 404
 				status: "Failed"
 				message: "Not found, failed to retrieve all users"
 			}
 
-		else
-			catch(error)
-				{
-					next(error)
-				}		
+		catch(error)
+			{
+				next(error)
+			}		
 ```
+
+Getting user by id to be performed by Super Admin
 
 ```js
 	http://localhost:5000/api/users/:id      -----for Admin to get user by ID
@@ -377,18 +377,18 @@ ENDPOINTS FOR USER OR ADMIN/ URLs
 				status: "Success"
 				message: oneUser
 			}
-		if not successfull, expected response-body
+		other expected response-bodies
 			{
 				status: 404
 				status: "Failed"
 				message: "User not found"
 
 			}
-		else
-			catch(error)
-				{
-					next(error)
-				}
+
+		catch(error)
+			{
+				next(error)
+			}
 
 	And also used to delete user
 
@@ -399,22 +399,22 @@ ENDPOINTS FOR USER OR ADMIN/ URLs
 				message: "user ${userId} got deleted successfully"
 			}
 
-		if not successfull, expected response-body
+		other expected response-body
 			{
 				status: 500
 				status: "Failed"
 				message: "Internal server error while deleting user"
 			}
-		else
-			catch(error)
-				{
-					next(error)
-				}			
+	
+		catch(error)
+			{
+				next(error)
+			}			
 
 ```
-
+Getting user profile, user will be able to get his/her profile if successful
 ```js
-	http://localhost:5000/api/users/me/profile     ----- for user to get his/her profile
+	http://localhost:5000/api/users/me/profile     
 	Method: GET
 
 		Expected inputs for getting profile
@@ -429,19 +429,19 @@ ENDPOINTS FOR USER OR ADMIN/ URLs
 				message: UserProfile
 			}
 
-		if not successfull, expected response-body
+		other expected response-body
 			{
 				status: 404
 				status: "Failed"
 				message: "Not found"
 			}		
-		else
-			catch(error)
-				{
-					next(error)
-				}
+	
+		catch(error)
+			{
+				next(error)
+			}
 
-	To update the UserProfile
+	To update the UserProfile ---here user provide userId, emailAddress and residentialAddress to update the profile
 		
 		Expected inputs for updating UserProfile
 			{
@@ -461,17 +461,22 @@ ENDPOINTS FOR USER OR ADMIN/ URLs
         			}
 			}
 
-		if update creditials not legible, expected response-body
+		other expected response-body
 			{
 				status: 400
 				status: "Failed"
 				message: "Invalid or empty update fields"
 			}
+
+			{
+				status: "500"
+				status: "Failed"
+				message: "Internal server error, user not updated"
+			}
 			
-		else
-			catch(error)
-				{
-					next(error)
-				}	
+		catch(error)
+			{
+				next(error)
+			}	
 
 ```
