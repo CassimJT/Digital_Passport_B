@@ -17,7 +17,7 @@ export const registerUserSchema = Joi.object({
 });
 //EMAIL VALIDATION
 export const validateEmail = Joi.object({
-  email: Joi.string().email()
+  emailAddress: Joi.string().email()
     
 })
 //VALIDATE PASSWORD
