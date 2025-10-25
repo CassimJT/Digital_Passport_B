@@ -310,17 +310,16 @@ export const requestPasswordReset = async (req,res, next)=> {
 //logic to reset password
 export const resetPassword = async (req,res,next)=> {
     try {
-        const userID = req.user._id
+        const userId = new mongoose.Types.ObjectId(req.query.id)
         const {password,confirmPasword} = req.validatedData
-        if(password !== confirmPassword){
+        if(password !== confirmPasword){
             return res.status(400).json({
             status: "failed",
             message: "mismatching passwords"
          })
         }
-        const resetHashedPassword = hashPassword(password)
-        await User.findByIdAndUpdate(userID,{$set:{password: resetHashedPassword }, new: true})
-        
+        const resetHashedPassword = await hashPassword(password)
+        const temp = await User.findByIdAndUpdate(userId,{password: resetHashedPassword }, {new: true})
          return res.status(200).json({
             status: "success",
             message: "resetted their password successfully"
@@ -330,12 +329,12 @@ export const resetPassword = async (req,res,next)=> {
     }
 }
 //logic to change passwod
-export const changePassword = async (req,res)=> {
+export const changePassword = async (req,res,next)=> {
     try {
-        const userID = req.body.id
-        const { currentPassword, newPassword, confirmNewPassword} = req.validatedData
-        const user = await User.findOne(userID)
-        const changePasswordHashed = hashPassword(newPassword)
+        const userId = new mongoose.Types.ObjectId(req.validatedData.userId)
+        const {currentPassword, newPassword, confirmNewPassword} = req.validatedData
+        const user = await User.findOne(userId)
+        const changePasswordHashed = await hashPassword(newPassword)
         if(!user || !(comparePassword(currentPassword,user.password)) || 
            !(comparePassword(confirmNewPassword,changePasswordHashed))
         ){
@@ -344,7 +343,7 @@ export const changePassword = async (req,res)=> {
             message: "mismatching passwords"
             })
         }
-        await User.findByIdAndUpdate(userID,{$set:{password: changePasswordHashed }, new: true})
+        await User.findByIdAndUpdate(userId,{$set:{password: changePasswordHashed }, new: true})
         
         return res.status(200).json({
             status: "success",

@@ -22,14 +22,14 @@ export const validateEmail = Joi.object({
 })
 //VALIDATE PASSWORD
 export const validatePassword = Joi.object({
-  userID: Joi.string(),
-  password: Joi.string().required()
+  password: Joi.string().required(),
+  confirmPasword:Joi.string().required()
 
 
 })
 //VALIDATE CHANGE PASSWORD
 export const validateChangePassword = Joi.object({
-  userID: Joi.string(),
+  userId: Joi.string(),
   currentPassword: Joi.string().required(),
   newPassword: Joi.string().required(),
   confirmNewPassword: Joi.string().required()
