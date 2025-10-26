@@ -34,6 +34,11 @@ import Nrb from "../models/Nrb.mjs";
       unique: true,
       trim: true,
     },
+    role:{
+      type: String,
+      required: true,
+      default: "client"
+    },
     
     createdAt: {
       type: Date,
