@@ -2,11 +2,11 @@
   "name": "digital_passport_b",
   "version": "1.0.0",
   "description": "This is a backend project for Immigration tellered to digitise Passport making process.",
-  "main": "index.mjs",
+  "main": "src/index.mjs",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start:dev": "nodemon ./src/index.mjs",
-    "start": "node ./src/index.mjs"
+    "start": "node src/index.mjs"
   },
   "repository": {
     "type": "git",
