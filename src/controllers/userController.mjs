@@ -1,4 +1,5 @@
 import User from "../models/User.mjs"
+import mongoose from "mongoose"
 
 
 //logic to get all users
@@ -22,8 +23,8 @@ export const getAllUsers = async (req,res,next)=> {
 //logic to get users by id
 export const getUserById = async (req,res, next)=> {
     try {
-        const id = req.body.id
-        const oneUser = await User.findOne(id)
+        const id = new mongoose.Types.ObjectId(req.params.id)
+        const oneUser = await User.findById(id)
         if(!oneUser){
             return res.status(404).json({
                 status: "failed",
@@ -44,7 +45,7 @@ export const getUserById = async (req,res, next)=> {
 //logic to get profile
 export const getMyProfile = async (req,res,next)=> {
     try {
-        const id = req.body.id
+        const id = req.user.userId
         const userProfile = await User.findById(id)
 
         if(!userProfile){
@@ -67,36 +68,41 @@ export const getMyProfile = async (req,res,next)=> {
 //logic to update user profile
 export const updateUserProfile = async (req,res, next)=> {
     try{
-    const {userId,emailAddress, residentialAddress} = req.body;
-    const updates = {emailAddress,residentialAddress}
-    // Define allowed fields for update
-    const allowedUpdates =  ['emailAddress','residentialAddress'];
-    const updateKeys = Object.keys(updates);
-    const isValidUpdate = updateKeys.every(key => allowedUpdates.includes(key));
 
-    if (!isValidUpdate || updateKeys.length === 0) {
-      return res.status(400).json({ message: 'Invalid or empty update fields' });
-    }
+        const userId = new mongoose.Types.ObjectId(req.user.userId)
+        const {emailAddress, residentialAddress} = req.body;
+        const updates = {emailAddress,residentialAddress}
+        // Define allowed fields for update
+        const allowedUpdates =  ['emailAddress','residentialAddress'];
+        const updateKeys = Object.keys(updates);
+        const isValidUpdate = updateKeys.every(key => allowedUpdates.includes(key));
 
-    const user = await User.findByIdAndUpdate(
-      userId,
-      { $set: {
-        emailAddress: emailAddress,
-        residentialAddress:residentialAddress} 
-     }, // Use $set for partial updates
-      { new: true} // Return updated document
-    );
+        if (!isValidUpdate || updateKeys.length === 0) {
+            return res.status(400).json({ message: 'Invalid or empty update fields' });
+        }
 
-    if (!user) {
-      return res.status(500).json({
-        status: "failed", 
-        message: 'Internal server error. user not updated' 
-      });
-    }
+        const user = await User.findByIdAndUpdate(
+            userId,
+            { $set: {
+                emailAddress: emailAddress,
+                residentialAddress:residentialAddress} 
+            },         // Use $set for partial updates
+            { 
+                new: true
+            } // Return updated document
+        );
 
-    return res.status(200).json({
+        if (!user) {
+            return res.status(404).json({
+                status: "failed", 
+                message: 'user not updated' 
+                }
+            )
+        }
+
+        return res.status(200).json({
         status: "success", 
-        message: {
+        body: {
             message:"profile updated succesfully", 
             updatedProfile: user
         }
@@ -110,7 +116,7 @@ export const updateUserProfile = async (req,res, next)=> {
 //logic to update User
 export const deleteUser = async (req,res)=> {
     try {
-        const userId = req.body.id
+        const userId = new mongoose.Types.ObjectId(req.params.id)
         const deletedUser = await User.findByIdAndDelete(userId)
         if(!deletedUser){
             return res.status(500).json({
