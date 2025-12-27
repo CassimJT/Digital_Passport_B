@@ -27,10 +27,22 @@ import Nrb from "../models/Nrb.mjs";
       minlength: [8, "Password must be atleast 8 characters"],
     },
 
+    //required when logging in
+    emailAddress: {
+      type: String,
+      required: false,
+      unique: true,
+      trim: true,
+    },
+    role:{
+      type: String,
+      required: true,
+      default: "client"
+    },
     
     createdAt: {
       type: Date,
-      default: Date.now
+      default: Date.now,
     }
 });
 

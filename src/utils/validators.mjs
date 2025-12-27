@@ -3,32 +3,33 @@ import { upload } from './multerConfig.mjs';
 
 // USER VALIDATION
 export const registerUserSchema = Joi.object({
-  nationalId: Joi.string().required(),
-  password: Joi.string().required(),
   residentialAddress:{
     district: Joi.string().required(),
     traditionalauthority: Joi.string().required(),
     village: Joi.string().required()
   },
+  nationalId: Joi.string().required(),
+  password: Joi.string().required(),
+  emailAddress: Joi.string().email().required(),
   createdAt:Joi.date()
 
 
 });
 //EMAIL VALIDATION
 export const validateEmail = Joi.object({
-  email: Joi.string().email()
+  emailAddress: Joi.string().email()
     
 })
 //VALIDATE PASSWORD
 export const validatePassword = Joi.object({
-  userID: Joi.string(),
-  password: Joi.string().required()
+  password: Joi.string().required(),
+  confirmPasword:Joi.string().required()
 
 
 })
 //VALIDATE CHANGE PASSWORD
 export const validateChangePassword = Joi.object({
-  userID: Joi.string(),
+  userId: Joi.string(),
   currentPassword: Joi.string().required(),
   newPassword: Joi.string().required(),
   confirmNewPassword: Joi.string().required()
@@ -36,13 +37,13 @@ export const validateChangePassword = Joi.object({
 })
 //LOG IN VALIDATION
 export const loginValidation = Joi.object({
-  nationalId: Joi.string().required(),
+  emailAddress: Joi.string().required(),
   password: Joi.string().required()
   
 })
 
 export const loginSchema = Joi.object({
-  nationalID: Joi.string().required(),
+  emailAddress: Joi.string().required(),
   password: Joi.string().required()
   
 });
