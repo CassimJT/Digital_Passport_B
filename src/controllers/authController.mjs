@@ -124,62 +124,73 @@ export const registerUser = async (req,res, next)=> {
     }
 }
 // logic to logout user
-export const loginUser = async (req,res, next)=> {
-    console.log("loggin in")
+export const loginUser = async (req, res, next) => {
+  try {
+    const { emailAddress, password } = req.validatedData
 
-    try {
-        const {emailAddress,password} = req.validatedData
-        const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000;
+    const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000
+    const refreshTokenExpiresAt = new Date(Date.now() + thirtyDaysInMs)
 
-        const findCitizen = await User.findOne({emailAddress: emailAddress})
-        const comparedPassword = await comparePassword(password, findCitizen.password)
-        if(!comparedPassword || !findCitizen){
-            return res.status(400).json({
-                status: "failed", 
-                message: "incorrect username/password"
-            })
-        }
-
-        /*
-        user assigned a jwt session token & refresh jwt token
-        */
-        const loginSessionToken = generateAccessToken(findCitizen)
-        const refreshLoginToken = generateRefreshToken(findCitizen)
-        const storeRefreshToken = await RefreshToken.findOneAndUpdate(
-            {
-                user:findCitizen._id
-            },
-            {
-                token: loginSessionToken,
-                expiresAt: thirtyDaysInMs
-            },
-            {
-                upsert:true,
-                new: true
-            }
-        )
-         
-
-        res.cookie("refreshLoginToken",refreshLoginToken,{
-            httpOnly:true,
-           // secure:true, // ---this will be used in deployment
-            expires:new Date(Date.now() + thirtyDaysInMs),
-            sameSite: 'strict'
-
-        })
-
-        return res.status(200).json({
-            status: "success",
-            message: {
-                token: loginSessionToken,
-                userId: storeRefreshToken._id,
-                redirectURL: "/dashboard" // to be replace by a real url
-            }
-        })
-    } catch (error) {
-        next(error)
+    // FIND USER
+    const user = await User.findOne({ emailAddress })
+    if (!user) {
+      return res.status(400).json({
+        status: 'failed',
+        message: 'Incorrect username/password',
+      })
     }
 
+    // COMPARE PASSWORD
+    const isPasswordValid = await comparePassword(password, user.password)
+    if (!isPasswordValid) {
+      return res.status(400).json({
+        status: 'failed',
+        message: 'Incorrect username/password',
+      })
+    }
+
+    // GENERATE TOKENS
+    const accessToken = generateAccessToken(user)
+    const refreshToken = generateRefreshToken(user)
+
+    // STORE REFRESH TOKEN (NOT ACCESS TOKEN)
+    await RefreshToken.findOneAndUpdate(
+      { user: user._id },
+      {
+        token: refreshToken,
+        expiresAt: refreshTokenExpiresAt,
+      },
+      {
+        upsert: true,
+        new: true,
+      }
+    )
+
+    // SET REFRESH TOKEN COOKIE
+    res.cookie('refreshLoginToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      expires: refreshTokenExpiresAt,
+    })
+
+    // SEND RESPONSE
+    return res.status(200).json({
+      status: 'success',
+      message: {
+        accessToken,
+        user: {
+          id: user._id,
+          name: user.fullName || user.name,
+          role: user.role,
+          emailAddress: user.emailAddress,
+        },
+        redirectURL: '/dashboard',
+      },
+    })
+  } catch (error) {
+    next(error)
+  }
 }
 //logic to logout user
 export const logoutUser = async (req,res,next)=> {
