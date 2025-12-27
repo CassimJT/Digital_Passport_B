@@ -87,7 +87,7 @@ ENDPOINTS / URLs
 
 	Endpoints which client is expected to hit
 
-	http://localhost:5000/api/auth//verfy-national-id  ---user provide national-id for verification
+	https://digital-passport-b.onrender.com/api/auth//verfy-national-id  ---user provide national-id for verification
 	Method: POST
 
 			Expected inpunts for id verification
@@ -106,19 +106,33 @@ ENDPOINTS / URLs
 
 				},
 
-			if not successfull
+			other expected response-bodies in terms of failure
 				{
 
 					status: 500
 					status: "Failed"
 					message: erro.message
-				}	
+				}
 
-			else
-				catch(error)
-					{
-						next(error)
-					}
+		
+				{ 
+					status: 404
+					status:"failed",
+	                message: "user not found"
+				},
+
+	
+				{ 
+					status: 200
+					status:"Success",
+	                message: "Ok"
+				},	
+
+			
+			catch(error)
+				{
+					next(error)
+				}
 			
 			
 ```
@@ -126,7 +140,7 @@ ENDPOINTS / URLs
 
 ```js
 
-	http://localhost:5000/api/auth/register
+	https://digital-passport-b.onrender.com/api/auth/register
 	Method: POST
 
 		Expected inputs for registration 
@@ -142,33 +156,40 @@ ENDPOINTS / URLs
 					}
 			},
 
-		if successful expected response-body is
+		if successfull expected response-body is
 			{	
 				status: 200
 			 	status:"success",
-           	    message: "saved to db succesfully"
+           	    message: "saved user succesfully"
 			},
 
-		if citizen not saved expected response-body
+		other expectes response-bodies
+
 			{ 
-				status: 400
+				status: 404
 				status:"failed",
-                message: "citizen was not saved in db"
+                message: "Saving failed"
 			},
-		else
-			catch(error)
+
+			{
+				status: "404"
+				status: "failed"
+				message: "OTP or validation failed"
+			}
+
+		catch(error)
 			{
 				next(error)
 			}
-			
+
 
 ```
 
 ```js
-	http://localhost:5000/api/auth/login
+	https://digital-passport-b.onrender.com/api/auth/login
 	Method: POST
 
-		Expected inputs for logging
+		Expected inputs for logging and validation is required
 			{
 				"emailAddress":,
 				"password":
@@ -192,9 +213,41 @@ ENDPOINTS / URLs
 				next(error)
 			}
 ```
+Refreshing token
+```js 
+	https://digital-passport-b.onrender.com/api/auth/refresh-token
+	Method: POST
 
+		Expected inputs to refresh token
+			{
+				"userId":
+				"tokenId":
+			}
+
+		if successfull, expected response-body
+			{
+				status: 200
+				status: "Success"
+				message: "token refreshed"
+			}
+
+		Other expected response-body
+			{
+				status: 404
+				status: "Failed"
+				status: "Faile to refresh token"
+			}
+
+
+		catch(error)
+			{
+				next(error)
+			}
+				
+```
+Request to reset password
 ```js
-	http://localhost:5000/api/auth/request-reset
+	https://digital-passport-b.onrender.com/api/auth/request-reset
 	Method: POST
 
 		Expected inputs for requesting password reset
@@ -202,34 +255,29 @@ ENDPOINTS / URLs
 				"emailAddress":
 			}
 
-		if password reset details not sent to emailAddress , expected response-body
-			{
-				status: 500
-				status: "failed"
-				message: "Internal server error"
-			}
-		if password resent details sent to emailAddress, expected response-body
+		if successfull, expected response-body
 			{
 				status: 200
 				status: "success"
 				message: "Password reset request sent to your email address"
 			}
-		else
-			catch(error)
-				{
-					next(error)
-				}	
+
+		catch(error)
+			{
+				next(error)
+			}	
 
 
 ```
-
+Resetting password, the provided password need to be validated
 ```js
-	http://localhost:5000/api/auth/reset-password
+	https://digital-passport-b.onrender.com/api/auth/reset-password
 	Method: POST
 
 		Expected inputs for resetting password
 			{
-				"password":	
+				"password":,
+				"comfirmPassword":
 			}
 
 		if password reset successfull, expected response-body
@@ -239,24 +287,23 @@ ENDPOINTS / URLs
 				message: "Password reset successfull"
 			}
 
-		if password reset failed, expected response-body
+		other expected response-bodies
 			{
-				status: 500
-				status: "Success"
-				message: "Internal server error"
+				status: 404
+				status: "failed"
+				message: "Mismatching passwords"
 			}
 
-		else
-			catch(error)
+		catch(error)
 				{
 					next(error)
 				}		
 
 		
 ```
-
+Changing password, the provided passwords need to be validated
 ```js
-	http://localhost:5000/api/auth/change-password
+	https://digital-passport-b.onrender.com/api/auth/change-password
 	Method: POST
 
 		Expected inputs for changing password
@@ -273,30 +320,24 @@ ENDPOINTS / URLs
 				message: "Password updated successfully"
 			}
 
-		if password mismatch, expected response-body
+		other expected response-bodies in terms of failure
 			{
-				status:500
+				status:400
 				status: "Failed"
 				message: "Mismatching passwords "
 			}	
 
-		if password fails to be update in the database , expected response-body
-			{
-				status:500
-				status: "Failed"
-				message: "Failed to reset their password in user db"
-			}
-		else
-			catch(error)
+		catch(error)
 				{
 					next(error)
 				}	
 
 ```
-	ENDPOINTS FOR USERCONTROLLER / URLs
+ENDPOINTS FOR USER OR ADMIN/ URLs
 
-```js
-	http://localhost:5000/api/users/    -----to be hit by Admin in order to get all users
+```js 
+
+	https://digital-passport-b.onrender.com/api/users/    -----to be hit by Super Admin in order to get all users
 	Method: GET
 
 		if successfull, expected response-body
@@ -306,22 +347,23 @@ ENDPOINTS / URLs
 				message: allUsers
 			}
 
-		if not successfull, expected response-body
+		other expected response-bodies in terms of failure
 			{
 				status: 404
 				status: "Failed"
 				message: "Not found, failed to retrieve all users"
 			}
 
-		else
-			catch(error)
-				{
-					next(error)
-				}		
+		catch(error)
+			{
+				next(error)
+			}		
 ```
 
+Getting user by id to be performed by Super Admin
+
 ```js
-	http://localhost:5000/api/users/:id      -----for Admin to get user by ID
+	https://digital-passport-b.onrender.com/api/users/:id      -----for Admin to get user by ID
 	Method: GET
 
 		Expected inputs 
@@ -335,18 +377,18 @@ ENDPOINTS / URLs
 				status: "Success"
 				message: oneUser
 			}
-		if not successfull, expected response-body
+		other expected response-bodies in terms of failure
 			{
 				status: 404
 				status: "Failed"
 				message: "User not found"
 
 			}
-		else
-			catch(error)
-				{
-					next(error)
-				}
+
+		catch(error)
+			{
+				next(error)
+			}
 
 	And also used to delete user
 
@@ -357,22 +399,22 @@ ENDPOINTS / URLs
 				message: "user ${userId} got deleted successfully"
 			}
 
-		if not successfull, expected response-body
+		other expected response-body
 			{
 				status: 500
 				status: "Failed"
 				message: "Internal server error while deleting user"
 			}
-		else
-			catch(error)
-				{
-					next(error)
-				}			
+	
+		catch(error)
+			{
+				next(error)
+			}			
 
 ```
-
+Getting user profile, user will be able to get his/her profile if successful
 ```js
-	http://localhost:5000/api/users/me/profile     ----- for user to get his/her profile
+	https://digital-passport-b.onrender.com/api/users/me/profile     
 	Method: GET
 
 		Expected inputs for getting profile
@@ -387,18 +429,19 @@ ENDPOINTS / URLs
 				message: UserProfile
 			}
 
-		if not successfull, expected response-body
+		other expected response-body
 			{
 				status: 404
 				status: "Failed"
 				message: "Not found"
 			}		
-		else
-			catch(error)
-				{
-					next(error)
-				}
-	To update the UserProfile
+	
+		catch(error)
+			{
+				next(error)
+			}
+
+	To update the UserProfile ---here user provide userId, emailAddress and residentialAddress to update the profile
 		
 		Expected inputs for updating UserProfile
 			{
@@ -418,11 +461,87 @@ ENDPOINTS / URLs
         			}
 			}
 
-		if update creditials not legible, expected response-body
+		other expected response-body
 			{
 				status: 400
 				status: "Failed"
 				message: "Invalid or empty update fields"
+			}
+
+			{
+				status: "500"
+				status: "Failed"
+				message: "Internal server error, user not updated"
+			}
+			
+		catch(error)
+			{
+				next(error)
 			}	
+
+```
+Deleting user, Super admin can delete user
+```js
+	https://digital-passport-b.onrender.com/api/users/id
+
+		Expected input 
+			{
+				"usedId": 
+			}
+
+		if successfull, expected response-body
+			{
+				status: 200
+				status: "Success"
+				message: "user ${userId} got deleted successfully"
+			}
+
+		other expected response bodies in terms of failure
+			{
+				status: 500
+				status: "failed"
+				message: "Internal server error occured while deleting the a user "
+			}
+		catch(error)
+			{
+				next(error)
+			}	
+
+```
+ENDPOINTS FOR PAYMENT 
+```js
+	https://digital-passport-b.onrender.com/api/payments/init      ---url for initiating the payment 
+
+		Expected inputs for payment initiation
+			{
+				"passportID":, 
+				"passportFee ":
+			}
+
+		if successfull expected response-body 
+			{
+				status: 200
+				status: "Success"
+				message: "Checkout session created"
+			}
+
+		other expected response-bodies in terms of failure
+			{
+				status: 400
+				status: "Failed"
+				message: "passportID and fee is required"
+			}	
+
+			{
+				status: 404
+				status: "Failed"
+				message: "Passport Data not found"
+			}
+
+			{
+				status: 403
+				status: "Failed"
+				message: "You are not authorized to make a payment for this passport"
+			}
 
 ```
