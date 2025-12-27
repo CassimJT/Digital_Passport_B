@@ -87,7 +87,7 @@ ENDPOINTS / URLs
 
 	Endpoints which client is expected to hit
 
-	http://localhost:5000/api/auth//verfy-national-id  ---user provide national-id for verification
+	https://digital-passport-b.onrender.com/api/auth//verfy-national-id  ---user provide national-id for verification
 	Method: POST
 
 			Expected inpunts for id verification
@@ -140,7 +140,7 @@ ENDPOINTS / URLs
 
 ```js
 
-	http://localhost:5000/api/auth/register
+	https://digital-passport-b.onrender.com/api/auth/register
 	Method: POST
 
 		Expected inputs for registration 
@@ -186,7 +186,7 @@ ENDPOINTS / URLs
 ```
 
 ```js
-	http://localhost:5000/api/auth/login
+	https://digital-passport-b.onrender.com/api/auth/login
 	Method: POST
 
 		Expected inputs for logging and validation is required
@@ -215,7 +215,7 @@ ENDPOINTS / URLs
 ```
 Refreshing token
 ```js 
-	http://localhost:5000/api/auth/refresh-token
+	https://digital-passport-b.onrender.com/api/auth/refresh-token
 	Method: POST
 
 		Expected inputs to refresh token
@@ -247,7 +247,7 @@ Refreshing token
 ```
 Request to reset password
 ```js
-	http://localhost:5000/api/auth/request-reset
+	https://digital-passport-b.onrender.com/api/auth/request-reset
 	Method: POST
 
 		Expected inputs for requesting password reset
@@ -271,7 +271,7 @@ Request to reset password
 ```
 Resetting password, the provided password need to be validated
 ```js
-	http://localhost:5000/api/auth/reset-password
+	https://digital-passport-b.onrender.com/api/auth/reset-password
 	Method: POST
 
 		Expected inputs for resetting password
@@ -303,7 +303,7 @@ Resetting password, the provided password need to be validated
 ```
 Changing password, the provided passwords need to be validated
 ```js
-	http://localhost:5000/api/auth/change-password
+	https://digital-passport-b.onrender.com/api/auth/change-password
 	Method: POST
 
 		Expected inputs for changing password
@@ -337,7 +337,7 @@ ENDPOINTS FOR USER OR ADMIN/ URLs
 
 ```js 
 
-	http://localhost:5000/api/users/    -----to be hit by Super Admin in order to get all users
+	https://digital-passport-b.onrender.com/api/users/    -----to be hit by Super Admin in order to get all users
 	Method: GET
 
 		if successfull, expected response-body
@@ -363,7 +363,7 @@ ENDPOINTS FOR USER OR ADMIN/ URLs
 Getting user by id to be performed by Super Admin
 
 ```js
-	http://localhost:5000/api/users/:id      -----for Admin to get user by ID
+	https://digital-passport-b.onrender.com/api/users/:id      -----for Admin to get user by ID
 	Method: GET
 
 		Expected inputs 
@@ -414,7 +414,7 @@ Getting user by id to be performed by Super Admin
 ```
 Getting user profile, user will be able to get his/her profile if successful
 ```js
-	http://localhost:5000/api/users/me/profile     
+	https://digital-passport-b.onrender.com/api/users/me/profile     
 	Method: GET
 
 		Expected inputs for getting profile
@@ -482,7 +482,7 @@ Getting user profile, user will be able to get his/her profile if successful
 ```
 Deleting user, Super admin can delete user
 ```js
-	http://localhost:5000/api/users/id
+	https://digital-passport-b.onrender.com/api/users/id
 
 		Expected input 
 			{
@@ -510,7 +510,7 @@ Deleting user, Super admin can delete user
 ```
 ENDPOINTS FOR PAYMENT 
 ```js
-	http://localhost:5000/api/payments/init      ---url for initiating the payment 
+	https://digital-passport-b.onrender.com/api/payments/init      ---url for initiating the payment 
 
 		Expected inputs for payment initiation
 			{
