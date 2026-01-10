@@ -22,7 +22,7 @@ import mongoose from "mongoose"
 //veryfy nationalID
 export const verfyNationalId = async (req,res, next)=> {
     try {
-        const {phone,emailAddress,nationalId} = req.body
+        const {nationalId} = req.body
         const findCitizen =  await Nrb.findOne({nationalId: nationalId})
         if(!findCitizen){
             return res.status(404).json({
@@ -36,9 +36,8 @@ export const verfyNationalId = async (req,res, next)=> {
         //preparing otp details to be saved in otp collection
         const saveOTPDetails = await Otp.findOneAndUpdate(
             {nationalId: findCitizen._id},
-            {email: emailAddress,
-             otp: generatedOTP,
-             phone
+            {email: findCitizen.emailAddress,
+             otp: generatedOTP
             },
             {
                 upsert: true, // creates one if document is not  found
@@ -53,7 +52,7 @@ export const verfyNationalId = async (req,res, next)=> {
             <p> you are verification otp ${generatedOTP}</p>
             <p>please do not share this code with anyone else</p>
         `
-        const subject = "Malawi Immigration"
+       const subject = "Malawi Immigration"
        const emailFeedback = await sendEmail(findCitizen.emailAddress,subject,html)
        console.log(emailFeedback)
         
