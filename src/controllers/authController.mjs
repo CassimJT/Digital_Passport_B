@@ -2,12 +2,21 @@ import User from "../models/User.mjs"
 import Nrb from "../models/Nrb.mjs"
 import Otp from "../models/Otp.mjs"
 import sendEmail  from "../utils/sendEmail.mjs"
-//import sendSms from "../utils/smsSender.mjs"
-import { generateAccessToken, generateRefreshToken,verifyAccessToken } from "../utils/jwt.mjs"
-import {generateRandomCode, 
-        hashPassword,
-        comparePassword 
-    } from "../utils/helpers.mjs"
+import { 
+    generateAccessToken, 
+    generateRefreshToken,
+    verifyAccessToken,
+    verifyRefreshToken 
+} from "../utils/jwt.mjs"
+import {
+    generateRandomCode, 
+    hashPassword,
+    comparePassword,
+    maskEmail 
+} from "../utils/helpers.mjs"
+import RefreshToken from "../models/RefreshToken.mjs"
+import mongoose from "mongoose" 
+
 
 
 //veryfy nationalID
@@ -16,73 +25,65 @@ export const verfyNationalId = async (req,res, next)=> {
         const {nationalId} = req.body
         const findCitizen =  await Nrb.findOne({nationalId: nationalId})
         if(!findCitizen){
-            return res.status(404).json({status: "failed"})
-        }
-
-        //checking for availbale citizen email or phone from nrb data
-        if(!findCitizen.email && !findCitizen.phone){
-            return res.status(404).json({status:" email and number for verification not availabe with nrb. meet nrb personel"})
+            return res.status(404).json({
+                status: "failed", 
+                message: "User not found"})
         }
 
         //generated the verification otp
         const generatedOTP = generateRandomCode()
 
         //preparing otp details to be saved in otp collection
-        const saveOTPDetails = new Otp({
-            citizenId: findCitizen._id,
-            email: emailAdress,
-            otp: generatedOTP,
-            phone:phone
-        })
-
-        //saving otp details
-        const savedCitizenOTP = saveOTPDetails.save()
-
-        if(!savedCitizenOTP){
-          return res.status(400).json({status: "saving otp details failed"})
-        }
-
-        // preparing and sending the otp through email with nodemailer
-        if(findCitizen.email){
-            //const html = <p> `verification otp ${generatedOTP}`</p>
-            const subject = "Malawi Immigration"
-            const sendCitizenOTP = await sendEmail(findCitizen.email,subject,html)
-            if(!sendCitizenOTP){
-                return res.status(400).json({status: "sending email failed"}) 
+        const saveOTPDetails = await Otp.findOneAndUpdate(
+            {nationalId: findCitizen._id},
+            {email: findCitizen.emailAddress,
+             otp: generatedOTP
+            },
+            {
+                upsert: true, // creates one if document is not  found
+                new: true,
+                setDefaultsOnInsert:true
             }
-        }
-
-        //preparing and sending otp through sms with Twilio
-        else if(findCitizen.phone){
-            const message = `verification otp ${generatedOTP}`
-            const sendCitizenOTP = sendSms(message,findCitizen.phone)
-            if(!sendCitizenOTP){
-                return res.status(400).json({status: "sending SMS failed"}) 
-            }
-        }
+        )
         
-        return res.status(200).json({data:findCitizen._id})
+        // preparing and sending the otp through email with nodemailer
+        const html = `
+            <h1>Malawi Immigration<h1/>
+            <p> you are verification otp ${generatedOTP}</p>
+            <p>please do not share this code with anyone else</p>
+        `
+       const subject = "Malawi Immigration"
+       const emailFeedback = await sendEmail(findCitizen.emailAddress,subject,html)
+       console.log(emailFeedback)
+        
+        return res.status(200).json({
+            status: "success",
+            body:{
+                userId:findCitizen._id,
+                emailAddress: findCitizen.emailAddress 
+            }})
     } catch (error) {
         next(error)
+        console.log(error)
     }
     
 }
 //Verify OPT
-export const verifyOTP =  async (req,res)=> {
+export const verifyOTP =  async (req,res,next)=> {
     try {
-        const{nationalId,phone, email, otp} = req.body
-        const verifiedOTP = await Otp.findOne({
-            nationalId:nationalId,
-            otp: otp,
-            phone:phone,
-            email:email
-            }    
-        )
+        const{otp} = req.body
+        const verifiedOTP = await Otp.findOneAndUpdate({otp},{$set:{status: "verified" }}, {new: true})
         if(!verifiedOTP){
-            return res.status(400).json({status:"failed"})
+            return res.status(404).json({
+                status:"failed",
+                message:" user not found"
+            })
         }
         
-        return res.status(200).json({status: "success"})
+        return res.status(200).json({
+            status: "success",
+            message: "ok"
+        })
 
     } catch (error) {
         next(error)
@@ -94,78 +95,136 @@ export const verifyOTP =  async (req,res)=> {
 
 export const registerUser = async (req,res, next)=> {
     try {
-        const data = req.validatedData
-        const hashedPassword = await hashPassword(data.password)
-        console.log(`hashedpassword ${hashedPassword}`)
-        const findUserOTP = await Otp.findOne({nationalId:data.nationalId})
-        const findCitezen =  await Nrb.findOne({nationalId:data.nationalId})
-        if(!findCitezen || !findUserOTP.otp){
-            return res.status(400).json({status:"otp or validated failed"}) //
+        console.log("started registration",req.validatedData)
+        const {password,confirmPassword,emailAddress} = req.validatedData
+        const hashedPassword = await hashPassword(password)
+        const findUserOTP = await Otp.findOne({email: emailAddress})
+        const findCitezen =  await Nrb.findById(findUserOTP.nationalId)
+        if(!findCitezen || findUserOTP.status !== "verified" || password !== confirmPassword){
+            return res.status(400).json({
+                status:"failed",
+                message:" invalid data provided"
+            }) 
         }
 
-        const user = new User({
-            residentialAddress: data.residentialAddress,
-            nationalId: data.nationalId,
+        console.log(findUserOTP)
+        const saveCitizen = new User({
+            nationalId: findCitezen._id,
+            emailAddress: emailAddress,
             password: hashedPassword
         })
+        await saveCitizen.save()
 
-        const saveApplicant = await user.save()
-        if (!saveApplicant){
-              return res.status(400).json({status:"failed"})   
-        }
-        console.log(`applicant ${data.nationalId} saved to db succesfully`)
-
-         return res.status(200).json({status:"success"})
+         return res.status(200).json({
+            status:"success",
+            message: "saved user succesfully"})
     } catch (error) {
         next(error)
         
     }
 }
 // logic to logout user
-export const loginUser = async (req,res, next)=> {
+export const loginUser = async (req, res, next) => {
+  try {
+    const { emailAddress, password } = req.validatedData
 
-    try {
-        const loginCredentials = req.validatedData
-        if (!loginCredentials || !loginCredentials.password || !loginCredentials.nationalId){
-            return res.status(400).json({status: "Bad request"})
-        }
+    const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000
+    const refreshTokenExpiresAt = new Date(Date.now() + thirtyDaysInMs)
 
-        const findCitizen = await User.findOne({nationalId: loginCredentials.nationalId})
-        const comparedPassword = await comparePassword(loginCredentials.password, findCitizen.password)
-        if(!comparedPassword || ! findCitizen){
-            return res.status(400).json({status: "incorrect username/password"})
-        }
-
-        // user assigned a jwt session token
-        const loginSessionToken = generateAccessToken(findCitizen)
-
-        return res.status(200).json({
-            status: "success",
-            data: {
-                token: loginSessionToken,
-                userId: findCitizen._id,
-                redirectURL: "/dashboard" // to be replace by a real url
-            }
-        })
-    } catch (error) {
-        next(error)
+    // FIND USER
+    const user = await User.findOne({ emailAddress })
+    if (!user) {
+      return res.status(400).json({
+        status: 'failed',
+        message: 'Incorrect username/password',
+      })
     }
 
+    // COMPARE PASSWORD
+    const isPasswordValid = await comparePassword(password, user.password)
+    if (!isPasswordValid) {
+      return res.status(400).json({
+        status: 'failed',
+        message: 'Incorrect username/password',
+      })
+    }
+
+    // GENERATE TOKENS
+    const accessToken = generateAccessToken(user)
+    const refreshToken = generateRefreshToken(user)
+
+    // STORE REFRESH TOKEN (NOT ACCESS TOKEN)
+    await RefreshToken.findOneAndUpdate(
+      { user: user._id },
+      {
+        token: refreshToken,
+        expiresAt: refreshTokenExpiresAt,
+      },
+      {
+        upsert: true,
+        new: true,
+      }
+    )
+
+    // SET REFRESH TOKEN COOKIE
+    res.cookie('refreshLoginToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      expires: refreshTokenExpiresAt,
+    })
+
+    // SEND RESPONSE
+    return res.status(200).json({
+      status: 'success',
+      message: {
+        accessToken,
+        user: {
+          id: user._id,
+          name: user.fullName || user.name,
+          role: user.role,
+          emailAddress: user.emailAddress,
+        },
+        redirectURL: '/dashboard',
+      },
+    })
+  } catch (error) {
+    next(error)
+  }
 }
 //logic to logout user
 export const logoutUser = async (req,res,next)=> {
     try {
         const authHeader = req.headers.authorization;
-        const token = authHeader.split(' ')[1];
-        const decoded = verifyAccessToken(token);
-        if (!decoded && !authHeader && !(authHeader.startsWith('Bearer '))) {
-            return res.status(400).json({status: "you need to be logged in"})
+        console.log(req.cookies.refreshLoginToken)
+        const refreshToken = req.cookies.refreshLoginToken
+        const userId = req.body.userId
+        if(!mongoose.Types.ObjectId.isValid(userId)){
+            return res.status(400).json({
+                status: "failed",
+                message: "invalid user"
+            })
         }
-        console.log(`User ${req.body.user} logged out successfully`);
+        const tokenId = new mongoose.Types.ObjectId(userId)
+        const accessToken = authHeader.split(' ')[1];
+        const accessTokenDecoded = verifyAccessToken(accessToken);
+        const refreshTokenDecoded = verifyRefreshToken(refreshToken)
+        if ((!accessTokenDecoded && !authHeader && !(authHeader.startsWith('Bearer '))) && !refreshTokenDecoded) {
+            return res.status(400).json({
+                status: "failed", 
+                message: {
+                    message:"you need to be logged in",
+                    redirectUrl:"/login"
+                }
+            })
+        }
+
+        await RefreshToken.findByIdAndUpdate(tokenId,{$set:{revoked: true}})
+
         return res.status(200).json({
             status: 'success',
-            data: {
-            redirectUrl: '/login', // Redirect to login page
+            message: {
+                redirectUrl: '/login', // Redirect to login page
         }
     }
     )
@@ -177,17 +236,47 @@ export const logoutUser = async (req,res,next)=> {
 export const refreshToken = async (req,res, next)=> {
     try {
         const userId = req.body.userId
-        const refreshToken = generateRefreshToken(userId)
-        if(!refreshToken){
-            console.log("invalid use id")
+        const tokenId = req.cookies.refreshLoginToken 
+        const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000;
+        if(!mongoose.Types.ObjectId.isValid(userId) || !tokenId){
+            return res.status(400).json({
+                status: "failed",
+                message: "Bad request, invalid User"
+            })
         }
+        const userObjectId = new mongoose.Types.ObjectId(userId)
+        const refreshLoginToken = generateRefreshToken(userObjectId)
+        if(!refreshLoginToken){
+            return res.status(500).json({
+                status: "failed",
+                message: "Server internal error"
+            })
+        }
+   
+        await RefreshToken.findByIdAndUpdate(
+                userObjectId,
+            {
+                token:refreshLoginToken,
+                revoked: false
+            },
+             
+            {
+                upsert: true,
+                new: true
+            }
+        )
+
+        res.cookie("refreshLoginToken",refreshLoginToken,{
+            httpOnly:true,
+            // secure:true, //--- this will be used when deployed
+            expires:new Date(Date.now() + thirtyDaysInMs),
+            sameSite: 'strict'
+
+        })
+
         return res.status(200).json({
             status: "success",
-            data: {
-                token: refreshToken,
-                userID: userId
-            }
-
+            message: userObjectId
         })
     } catch (error) {
         next(error)
@@ -196,14 +285,33 @@ export const refreshToken = async (req,res, next)=> {
 }
 //logic to reguest reset passwprd
 export const requestPasswordReset = async (req,res, next)=> {
+    console.log("requestPasswordReset")
     try {
-        const {email} = req.validatedData
-        const otp = generateRandomCode()
-        const passwordResetRequest = sendEmail(email,`you requested to change the password here is the otp ${otp}`)
-        if(!passwordResetRequest){
-            console.log(`failed to send a resetpasswordrequest email to ${email}`)
+        const {emailAddress} = req.validatedData
+        const resetPasswordUrl = process.env.RESET_URL
+        console.log(emailAddress)
+        const findCitizen = await User.findOne({emailAddress})
+        if(!findCitizen){
+            return res.status(404).json({
+                status: "failed",
+                message: "User not found"
+            })
         }
-        console.lo(`sent an email to ${email} requesting to reset password`)
+        const html = `
+        <h1>Malawi Immigratiin</h1>
+        <p>you requested to change the password.click the link below </p>
+        <p>${resetPasswordUrl}</p>
+        <p>Please do not share this link with anyone else</p>
+        `
+        const subject = "Immigration Request for Password Reset"
+        
+        const passwordRequest = await sendEmail(emailAddress,subject,html)
+        console.log(passwordRequest)
+        return res.status(200).json({
+            status: "success",
+            message: `password reset request sent to your email address ${emailAddress}`
+        })
+
     } catch (error) {
         next(next)
         
@@ -213,40 +321,48 @@ export const requestPasswordReset = async (req,res, next)=> {
 //logic to reset password
 export const resetPassword = async (req,res,next)=> {
     try {
-        const userID = req.user._id
-        const {password} = req.validatedData
-        const resetHashedPassword = hashPassword(password)
-        const updateUser = await User.findByIdAndUpdate(userID,{$set:{password: resetHashedPassword }, new: true})
-        if(!updateUser){
-            console.log(`user ${userID} failed to reset their password`)
+        const userId = new mongoose.Types.ObjectId(req.query.id)
+        const {password,confirmPasword} = req.validatedData
+        if(password !== confirmPasword){
+            return res.status(400).json({
+            status: "failed",
+            message: "mismatching passwords"
+         })
         }
-        console.log(`user ${userID}  resetted their password successfully`)
+        const resetHashedPassword = await hashPassword(password)
+        const temp = await User.findByIdAndUpdate(userId,{password: resetHashedPassword }, {new: true})
+         return res.status(200).json({
+            status: "success",
+            message: "resetted their password successfully"
+         })
     } catch (error) {
         next(error)    
     }
 }
 //logic to change passwod
-export const changePassword = async (req,res)=> {
+export const changePassword = async (req,res,next)=> {
     try {
-        const userID = req.user._id
-        const { currentPassword, newPassword, confirmNewPassword} = req.validatedData
-        const user = await User.findOne(userID)
-        const changePasswordHashed = hashPassword(newPassword)
-        if(!user || !(comparePassword(currentPassword,user,password)) || !(comparePassword(confirmNewPassword,changePasswordHashed))){
-            console.log(`user ${userID} failed to change their password , mismatching fields`)
+        const userId = new mongoose.Types.ObjectId(req.validatedData.userId)
+        const {currentPassword, newPassword, confirmNewPassword} = req.validatedData
+        const user = await User.findOne(userId)
+        const changePasswordHashed = await hashPassword(newPassword)
+        if(!user || !(comparePassword(currentPassword,user.password)) || 
+           !(comparePassword(confirmNewPassword,changePasswordHashed))
+        ){
+            return res.status(500).json({
+            status: "failed",
+            message: "mismatching passwords"
+            })
         }
-        const updateUser = await User.findByIdAndUpdate(userID,{$set:{password: changePasswordHashed }, new: true})
-        if(!updateUser){
-            console.log(`user ${userID} failed to reset their password in user db`)
-        }
-        console.log(`user ${userID}  resetted their password successfully`)
+        await User.findByIdAndUpdate(userId,{$set:{password: changePasswordHashed }, new: true})
+        
+        return res.status(200).json({
+            status: "success",
+            message: "password updated successfully"
+            })
+        
     } catch (error) {
         next(error)    
     }
 
 }
-
-
-
-  
- 

@@ -9,9 +9,9 @@ import Nrb from "../models/Nrb.mjs";
 
     //Residential address
     residentialAddress: {
-      district: {type: String,required: true,trim: true,},
-      traditionalauthority: {type: String,required: true,trim: true,},
-      village: {type: String,required: true,trim: true,},
+      district: {type: String,required: false,trim: true,},
+      traditionalauthority: {type: String,required: false,trim: true,},
+      village: {type: String,required: false,trim: true,},
     },
     
     nationalId: {
@@ -27,10 +27,22 @@ import Nrb from "../models/Nrb.mjs";
       minlength: [8, "Password must be atleast 8 characters"],
     },
 
+    //required when logging in
+    emailAddress: {
+      type: String,
+      required: false,
+      unique: true,
+      trim: true,
+    },
+    role:{
+      type: String,
+      required: true,
+      default: "client"
+    },
     
     createdAt: {
       type: Date,
-      default: Date.now
+      default: Date.now,
     }
 });
 

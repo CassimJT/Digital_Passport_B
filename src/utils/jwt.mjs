@@ -21,7 +21,11 @@ const jwtRefreshExpiration=JWT_REFRESH_EXPIRATION
  * @returns {String} token
  */
 export const generateAccessToken = (user) => {
-  const accessPayload = {userId: user._id, citizenId: user.nationalId};
+  const accessPayload = {
+    userId: user._id, 
+    citizenId: user.nationalId,
+    role: user.role
+  };
   console.log(accessPayload)
   const accessToken = jwt.sign(accessPayload,jwtTokenSecret,{expiresIn: jwtAccesExpiration})
   return (accessToken);
