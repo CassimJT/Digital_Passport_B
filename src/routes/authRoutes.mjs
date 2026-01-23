@@ -1,5 +1,5 @@
 import express from 'express';
-import router from './userRoutes.mjs';
+//import router from './userRoutes.mjs';
 import {
   registerUser,
   loginUser,
@@ -20,6 +20,8 @@ import { loginValidation,
   validateChangePassword
 } from '../utils/validators.mjs';
 import { checkRole } from '../middleware/roleMiddleware.mjs';
+
+const router = express.Router();
 
 
 // Basic Auth Routes
