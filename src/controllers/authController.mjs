@@ -64,14 +64,15 @@ export const verfyNationalId = async (req,res, next)=> {
             }})
     } catch (error) {
         next(error)
+        console.log(error)
     }
     
 }
 //Verify OPT
 export const verifyOTP =  async (req,res,next)=> {
     try {
-        const{email, otp} = req.body
-        const verifiedOTP = await Otp.findOneAndUpdate({email,otp},{$set:{status: "verified" }}, {new: true})
+        const{otp} = req.body
+        const verifiedOTP = await Otp.findOneAndUpdate({otp},{$set:{status: "verified" }}, {new: true})
         if(!verifiedOTP){
             return res.status(404).json({
                 status:"failed",
@@ -94,20 +95,20 @@ export const verifyOTP =  async (req,res,next)=> {
 
 export const registerUser = async (req,res, next)=> {
     try {
-        const {nationalId,password,emailAddress,residentialAddress} = req.validatedData
+        console.log("started registration",req.validatedData)
+        const {password,confirmPassword,emailAddress} = req.validatedData
         const hashedPassword = await hashPassword(password)
         const findUserOTP = await Otp.findOne({email: emailAddress})
         const findCitezen =  await Nrb.findById(findUserOTP.nationalId)
-        if(!findCitezen || !findUserOTP.status==="verified"){
+        if(!findCitezen || findUserOTP.status !== "verified" || password !== confirmPassword){
             return res.status(400).json({
                 status:"failed",
-                message:"otp or validated failed"
+                message:" invalid data provided"
             }) 
         }
 
         console.log(findUserOTP)
         const saveCitizen = new User({
-            residentialAddress: residentialAddress,
             nationalId: findCitezen._id,
             emailAddress: emailAddress,
             password: hashedPassword

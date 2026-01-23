@@ -9,9 +9,9 @@ import Nrb from "../models/Nrb.mjs";
 
     //Residential address
     residentialAddress: {
-      district: {type: String,required: true,trim: true,},
-      traditionalauthority: {type: String,required: true,trim: true,},
-      village: {type: String,required: true,trim: true,},
+      district: {type: String,required: false,trim: true,},
+      traditionalauthority: {type: String,required: false,trim: true,},
+      village: {type: String,required: false,trim: true,},
     },
     
     nationalId: {
