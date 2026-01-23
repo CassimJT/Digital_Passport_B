@@ -163,7 +163,9 @@ export const verify = async (req, res, next) => {
         ? `${FRONTEND_URL}/payment/success?tx_ref=${encodeURIComponent(tx_ref)}`
         : `${FRONTEND_URL}/payment/failed?tx_ref=${encodeURIComponent(tx_ref)}&status=${encodeURIComponent(status || "failed")}`;
       
-      return res.redirect(dest);
+      return res.status(200).json({
+          redirectURL: dest
+      });
     }
 
   } catch (err) {
