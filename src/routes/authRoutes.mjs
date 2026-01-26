@@ -8,7 +8,6 @@ import {
   requestPasswordReset,
   resetPassword,
   changePassword,
-  verfyNationalId,
   verifyOTP
 } from '../controllers/authController.mjs';
 import { validateRequest } from '../middleware/validateRequest.mjs';
@@ -25,7 +24,6 @@ const router = express.Router();
 
 
 // Basic Auth Routes
-router.post('/verfy-national-id',verfyNationalId);
 router.post('/verify-otp',verifyOTP);
 router.post('/register', validateRequest(registerUserSchema), registerUser);
 router.post('/login', validateRequest(loginValidation), loginUser);

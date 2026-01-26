@@ -182,3 +182,9 @@ export const pcFetch = async (path, init = {}) => {
 
   return data;
 };
+
+//mas phone number
+export const maskPhone = (phone)=>{
+  if (!phone) return null
+  return phone.slice(0, 3) + "****" + phone.slice(-2)
+}
