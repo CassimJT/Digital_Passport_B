@@ -1,5 +1,5 @@
 import express from 'express';
-import router from './userRoutes.mjs';
+//import router from './userRoutes.mjs';
 import {
   registerUser,
   loginUser,
@@ -8,7 +8,6 @@ import {
   requestPasswordReset,
   resetPassword,
   changePassword,
-  verfyNationalId,
   verifyOTP
 } from '../controllers/authController.mjs';
 import { validateRequest } from '../middleware/validateRequest.mjs';
@@ -21,9 +20,10 @@ import { loginValidation,
 } from '../utils/validators.mjs';
 import { checkRole } from '../middleware/roleMiddleware.mjs';
 
+const router = express.Router();
+
 
 // Basic Auth Routes
-router.post('/verfy-national-id',verfyNationalId);
 router.post('/verify-otp',verifyOTP);
 router.post('/register', validateRequest(registerUserSchema), registerUser);
 router.post('/login', validateRequest(loginValidation), loginUser);

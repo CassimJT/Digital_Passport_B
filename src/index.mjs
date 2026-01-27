@@ -6,6 +6,7 @@ import authRoutes from './routes/authRoutes.mjs';
 import userRoutes from './routes/userRoutes.mjs';
 import paymentRoutes from './routes/paymentRoutes.mjs';
 import notificationRoutes from './routes/notificationRoutes.mjs';
+import identityRoutes from './routes/identityRoutes.mjs';
 import { errorHandler } from './middleware/errorHandler.mjs';
 import cookieParser from 'cookie-parser';
 import { createServer } from 'http';
@@ -51,6 +52,7 @@ app.use("/api/payments/webhook", express.raw({ type: "application/json" }), paym
 
 // 4. Regular routes
 app.use('/api/auth', authRoutes);
+app.use('/api/identity', identityRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/payments', paymentRoutes); 
 app.use('/api/notifications', notificationRoutes);
