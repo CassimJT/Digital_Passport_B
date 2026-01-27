@@ -7,6 +7,7 @@ import userRoutes from './routes/userRoutes.mjs';
 import paymentRoutes from './routes/paymentRoutes.mjs';
 import notificationRoutes from './routes/notificationRoutes.mjs';
 import identityRoutes from './routes/identityRoutes.mjs';
+import passport from './routes/passport.mjs';
 import { errorHandler } from './middleware/errorHandler.mjs';
 import cookieParser from 'cookie-parser';
 import { createServer } from 'http';
@@ -56,6 +57,7 @@ app.use('/api/identity', identityRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/payments', paymentRoutes); 
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/passport', passport);
 
 // 5. Health check
 app.get('/', (req, res) => {

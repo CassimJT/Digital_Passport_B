@@ -81,3 +81,57 @@ export const validateForm = Joi.object({
 
 })
 
+//APPLICATION VALIDATION
+export const applicationSchema = Joi.object({
+  userId: Joi.string().hex().length(24).required(), // User.mjs
+
+  identitySessionId: Joi.string().hex().length(24).required(), // IdentityVerificationSession.mjs
+
+  applicationType: Joi.string()
+    .valid("PASSPORT", "VISA", "PERMIT", "CITIZENSHIP")
+    .required(),
+
+  status: Joi.string()
+    .valid("DRAFT", "SUBMITTED", "UNDER_REVIEW", "APPROVED", "REJECTED")
+    .default("DRAFT"),
+
+  paymentId: Joi.string().hex().length(24).optional(), // Payment.mjs
+
+  supportingDocuments: Joi.array()
+    .items(
+      Joi.object({
+        documentType: Joi.string().required(),
+        fileId: Joi.string().required(),
+      })
+    )
+    .default([]),
+
+  metadata: Joi.object().unknown(true).default({}), 
+})
+
+// APPLICATION UPDATE VALIDATION
+export const applicationUpdateSchema = Joi.object({
+  userId: Joi.string().hex().length(24).optional(),
+
+  identitySessionId: Joi.string().hex().length(24).optional(),
+
+  applicationType: Joi.string()
+    .valid("PASSPORT", "VISA", "PERMIT", "CITIZENSHIP")
+    .optional(),
+
+  status: Joi.string()
+    .valid("DRAFT", "SUBMITTED", "UNDER_REVIEW", "APPROVED", "REJECTED")
+    .optional(),
+
+  paymentId: Joi.string().hex().length(24).optional(),
+
+  supportingDocuments: Joi.array().items(
+    Joi.object({
+      documentType: Joi.string().required(),
+      fileId: Joi.string().required(),
+    })
+  ).optional(),
+
+  metadata: Joi.object().unknown(true).optional(),
+})
+.min(1)
