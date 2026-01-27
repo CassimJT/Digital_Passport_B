@@ -18,7 +18,7 @@ export const verifyNationalId = async (req, res, next) => {
     if (!citizen) {
       return res.status(404).json({
         status: "failed",
-        message: "Citizen not found",
+        message: "invalid nationalId",
       })
     }
 
