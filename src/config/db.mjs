@@ -30,8 +30,8 @@ export const createSuperUser = async () => {
     }
 
     const superAdmin = new User({
-      firstname: "awakeyaAdmin",
-      lastname: "awakeyaAdmin",
+      firstname: "immigrationAdmin",
+      lastname: "immigrationAdmin",
       username: "admin",
       email: process.env.SUPER_ADMIN_EMAIL,
       password: hashPassword,
