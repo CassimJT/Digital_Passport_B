@@ -88,7 +88,7 @@ export const applicationSchema = Joi.object({
   identitySessionId: Joi.string().hex().length(24).required(), // IdentityVerificationSession.mjs
 
   applicationType: Joi.string()
-    .valid("PASSPORT", "VISA", "PERMIT", "CITIZENSHIP")
+    .valid("Ordinary", "Temporary", "Service", "Diplomatic")
     .required(),
 
   status: Joi.string()
@@ -116,7 +116,7 @@ export const applicationUpdateSchema = Joi.object({
   identitySessionId: Joi.string().hex().length(24).optional(),
 
   applicationType: Joi.string()
-    .valid("PASSPORT", "VISA", "PERMIT", "CITIZENSHIP")
+    .valid("Ordinary", "Temporary", "Service", "Diplomatic")
     .optional(),
 
   status: Joi.string()

@@ -7,7 +7,7 @@ const ApplicationSchema = new Schema(
   {
     type: {
       type: String,
-      enum: ["PASSPORT", "VISA", "PERMIT", "CITIZENSHIP"],
+      enum: ["Ordinary", "Temporary", "Service", "Diplomatic"],
       required: true,
       index: true,
     },
