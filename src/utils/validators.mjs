@@ -81,57 +81,22 @@ export const validateForm = Joi.object({
 
 })
 
-//APPLICATION VALIDATION
-export const applicationSchema = Joi.object({
-  userId: Joi.string().hex().length(24).required(), // User.mjs
+export const applicationIdParamSchema = Joi.object({
+  id: Joi.string().hex().length(24).required(),
+})
 
-  identitySessionId: Joi.string().hex().length(24).required(), // IdentityVerificationSession.mjs
-
-  applicationType: Joi.string()
+export const createApplicationSchema = Joi.object({
+  type: Joi.string()
     .valid("Ordinary", "Temporary", "Service", "Diplomatic")
     .required(),
 
-  status: Joi.string()
-    .valid("DRAFT", "SUBMITTED", "UNDER_REVIEW", "APPROVED", "REJECTED")
-    .default("DRAFT"),
-
-  paymentId: Joi.string().hex().length(24).optional(), // Payment.mjs
-
-  supportingDocuments: Joi.array()
-    .items(
-      Joi.object({
-        documentType: Joi.string().required(),
-        fileId: Joi.string().required(),
-      })
-    )
-    .default([]),
-
-  metadata: Joi.object().unknown(true).default({}), 
+  formData: Joi.object().unknown(true).default({}),
 })
 
-// APPLICATION UPDATE VALIDATION
-export const applicationUpdateSchema = Joi.object({
-  userId: Joi.string().hex().length(24).optional(),
-
-  identitySessionId: Joi.string().hex().length(24).optional(),
-
-  applicationType: Joi.string()
+export const updateApplicationSchema = Joi.object({
+  type: Joi.string()
     .valid("Ordinary", "Temporary", "Service", "Diplomatic")
     .optional(),
 
-  status: Joi.string()
-    .valid("DRAFT", "SUBMITTED", "UNDER_REVIEW", "APPROVED", "REJECTED")
-    .optional(),
-
-  paymentId: Joi.string().hex().length(24).optional(),
-
-  supportingDocuments: Joi.array().items(
-    Joi.object({
-      documentType: Joi.string().required(),
-      fileId: Joi.string().required(),
-    })
-  ).optional(),
-
-  metadata: Joi.object().unknown(true).optional(),
-})
-.min(1)
+  formData: Joi.object().unknown(true).optional(),
+}).min(1)

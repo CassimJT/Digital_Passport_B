@@ -1,24 +1,26 @@
 import User from "../models/User.mjs"
 import Nrb from "../models/Nrb.mjs"
 import Otp from "../models/Otp.mjs"
-import sendEmail  from "../utils/sendEmail.mjs"
-import { 
-    generateAccessToken, 
-    generateRefreshToken,
-    verifyAccessToken,
-    verifyRefreshToken 
+import sendEmail from "../utils/sendEmail.mjs"
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  verifyAccessToken,
+  verifyRefreshToken,
 } from "../utils/jwt.mjs"
 import {
-    generateRandomCode, 
-    hashPassword,
-    comparePassword,
-    maskEmail 
+  generateRandomCode,
+  hashPassword,
+  comparePassword,
+  maskEmail,
 } from "../utils/helpers.mjs"
 import IdentityVerificationSession from "../models/IdentityVerificationSession.mjs"
 import RefreshToken from "../models/RefreshToken.mjs"
-import mongoose from "mongoose" 
+import mongoose from "mongoose"
 
-//Verify OPT
+/* ============================
+   VERIFY OTP
+============================ */
 export const verifyOTP = async (req, res, next) => {
   try {
     const { loginSessionId, otp } = req.body
@@ -47,10 +49,22 @@ export const verifyOTP = async (req, res, next) => {
     await otpRecord.save()
 
     const user = await User.findById(otpRecord.userId)
+    if (!user) {
+      return res.status(404).json({
+        status: "failed",
+        message: "User not found",
+      })
+    }
 
-    // Issue tokens
-    const accessToken = generateAccessToken(user)
-    const refreshToken = generateRefreshToken(user)
+    const accessToken = generateAccessToken({
+      sub: user._id,
+      role: user.role,
+      identitySessionId: otpRecord.verificationSession,
+    })
+
+    const refreshToken = generateRefreshToken({
+      sub: user._id,
+    })
 
     const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000
     const refreshTokenExpiresAt = new Date(Date.now() + thirtyDaysInMs)
@@ -90,8 +104,9 @@ export const verifyOTP = async (req, res, next) => {
   }
 }
 
-//logic to regester user
-
+/* ============================
+   REGISTER USER
+============================ */
 export const registerUser = async (req, res, next) => {
   try {
     const { verificationSessionId, emailAddress, password, confirmPassword } =
@@ -151,12 +166,14 @@ export const registerUser = async (req, res, next) => {
     next(error)
   }
 }
-// logic to logout user
+
+/* ============================
+   LOGIN USER (OTP ISSUANCE)
+============================ */
 export const loginUser = async (req, res, next) => {
   try {
     const { emailAddress, password, verificationSessionId } = req.validatedData
 
-    // Validate verification session
     if (!mongoose.Types.ObjectId.isValid(verificationSessionId)) {
       return res.status(400).json({
         status: "failed",
@@ -170,7 +187,7 @@ export const loginUser = async (req, res, next) => {
 
     if (
       !verificationSession ||
-      verificationSession.status !== "PENDING" ||
+      verificationSession.status !== "VERIFIED" ||
       verificationSession.expiresAt < new Date()
     ) {
       return res.status(400).json({
@@ -179,7 +196,6 @@ export const loginUser = async (req, res, next) => {
       })
     }
 
-    // Validate user credentials
     const user = await User.findOne({ emailAddress })
     if (!user) {
       return res.status(400).json({
@@ -196,7 +212,6 @@ export const loginUser = async (req, res, next) => {
       })
     }
 
-    // Generate OTP (no tokens yet)
     const otpCode = generateRandomCode()
 
     const otp = await Otp.create({
@@ -204,10 +219,10 @@ export const loginUser = async (req, res, next) => {
       purpose: "LOGIN",
       code: otpCode,
       status: "PENDING",
+      verificationSession: verificationSession._id,
       expiresAt: new Date(Date.now() + 5 * 60 * 1000),
     })
 
-    // Send OTP
     const html = `
       <h1>Malawi Immigration</h1>
       <p>Your login verification code is:</p>
@@ -225,177 +240,213 @@ export const loginUser = async (req, res, next) => {
     next(error)
   }
 }
-//logic to logout user
-export const logoutUser = async (req,res,next)=> {
-    try {
-        const authHeader = req.headers.authorization;
-        console.log(req.cookies.refreshLoginToken)
-        const refreshToken = req.cookies.refreshLoginToken
-        const userId = req.body.userId
-        if(!mongoose.Types.ObjectId.isValid(userId)){
-            return res.status(400).json({
-                status: "failed",
-                message: "invalid user"
-            })
-        }
-        const tokenId = new mongoose.Types.ObjectId(userId)
-        const accessToken = authHeader.split(' ')[1];
-        const accessTokenDecoded = verifyAccessToken(accessToken);
-        const refreshTokenDecoded = verifyRefreshToken(refreshToken)
-        if ((!accessTokenDecoded && !authHeader && !(authHeader.startsWith('Bearer '))) && !refreshTokenDecoded) {
-            return res.status(400).json({
-                status: "failed", 
-                message: {
-                    message:"you need to be logged in",
-                    redirectUrl:"/login"
-                }
-            })
-        }
 
-        await RefreshToken.findByIdAndUpdate(tokenId,{$set:{revoked: true}})
+/* ============================
+   LOGOUT USER
+============================ */
+export const logoutUser = async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization
+    const refreshTokenCookie = req.cookies.refreshLoginToken
+    const userId = req.body.userId
 
-        return res.status(200).json({
-            status: 'success',
-            message: {
-                redirectUrl: '/login', // Redirect to login page
-        }
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({
+        status: "failed",
+        message: "Invalid user",
+      })
     }
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({
+        status: "failed",
+        message: "Missing access token",
+      })
+    }
+
+    const accessToken = authHeader.split(" ")[1]
+    const accessTokenDecoded = verifyAccessToken(accessToken)
+    const refreshTokenDecoded = verifyRefreshToken(refreshTokenCookie)
+
+    if (!accessTokenDecoded || !refreshTokenDecoded) {
+      return res.status(401).json({
+        status: "failed",
+        message: {
+          message: "You need to be logged in",
+          redirectUrl: "/login",
+        },
+      })
+    }
+
+    await RefreshToken.findOneAndUpdate(
+      { user: userId },
+      { $set: { revoked: true } },
+      { new: true }
     )
-    } catch (error) {
-        next(error)
-    }
+
+    return res.status(200).json({
+      status: "success",
+      message: { redirectUrl: "/login" },
+    })
+  } catch (error) {
+    next(error)
+  }
 }
-//logic to refresh token
-export const refreshToken = async (req,res, next)=> {
-    try {
-        const userId = req.body.userId
-        const tokenId = req.cookies.refreshLoginToken 
-        const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000;
-        if(!mongoose.Types.ObjectId.isValid(userId) || !tokenId){
-            return res.status(400).json({
-                status: "failed",
-                message: "Bad request, invalid User"
-            })
-        }
-        const userObjectId = new mongoose.Types.ObjectId(userId)
-        const refreshLoginToken = generateRefreshToken(userObjectId)
-        if(!refreshLoginToken){
-            return res.status(500).json({
-                status: "failed",
-                message: "Server internal error"
-            })
-        }
-   
-        await RefreshToken.findByIdAndUpdate(
-                userObjectId,
-            {
-                token:refreshLoginToken,
-                revoked: false
-            },
-             
-            {
-                upsert: true,
-                new: true
-            }
-        )
 
-        res.cookie("refreshLoginToken",refreshLoginToken,{
-            httpOnly:true,
-            // secure:true, //--- this will be used when deployed
-            expires:new Date(Date.now() + thirtyDaysInMs),
-            sameSite: 'strict'
+/* ============================
+   REFRESH TOKEN
+============================ */
+export const refreshToken = async (req, res, next) => {
+  try {
+    const userId = req.body.userId
+    const refreshTokenCookie = req.cookies.refreshLoginToken
+    const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000
 
-        })
-
-        return res.status(200).json({
-            status: "success",
-            message: userObjectId
-        })
-    } catch (error) {
-        next(error)
+    if (!mongoose.Types.ObjectId.isValid(userId) || !refreshTokenCookie) {
+      return res.status(400).json({
+        status: "failed",
+        message: "Bad request, invalid user or token",
+      })
     }
 
+    const refreshTokenDecoded = verifyRefreshToken(refreshTokenCookie)
+    if (!refreshTokenDecoded) {
+      return res.status(401).json({
+        status: "failed",
+        message: "Invalid refresh token",
+      })
+    }
+
+    const newRefreshToken = generateRefreshToken({ sub: userId })
+
+    await RefreshToken.findOneAndUpdate(
+      { user: userId },
+      {
+        token: newRefreshToken,
+        revoked: false,
+        expiresAt: new Date(Date.now() + thirtyDaysInMs),
+      },
+      {
+        upsert: true,
+        new: true,
+      }
+    )
+
+    res.cookie("refreshLoginToken", newRefreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      expires: new Date(Date.now() + thirtyDaysInMs),
+      sameSite: "strict",
+    })
+
+    return res.status(200).json({
+      status: "success",
+    })
+  } catch (error) {
+    next(error)
+  }
 }
-//logic to reguest reset passwprd
-export const requestPasswordReset = async (req,res, next)=> {
-    console.log("requestPasswordReset")
-    try {
-        const {emailAddress} = req.validatedData
-        const resetPasswordUrl = process.env.RESET_URL
-        console.log(emailAddress)
-        const findCitizen = await User.findOne({emailAddress})
-        if(!findCitizen){
-            return res.status(404).json({
-                status: "failed",
-                message: "User not found"
-            })
-        }
-        const html = `
-        <h1>Malawi Immigratiin</h1>
-        <p>you requested to change the password.click the link below </p>
-        <p>${resetPasswordUrl}</p>
-        <p>Please do not share this link with anyone else</p>
-        `
-        const subject = "Immigration Request for Password Reset"
-        
-        const passwordRequest = await sendEmail(emailAddress,subject,html)
-        console.log(passwordRequest)
-        return res.status(200).json({
-            status: "success",
-            message: `password reset request sent to your email address ${emailAddress}`
-        })
 
-    } catch (error) {
-        next(next)
-        
+/* ============================
+   REQUEST PASSWORD RESET
+============================ */
+export const requestPasswordReset = async (req, res, next) => {
+  try {
+    const { emailAddress } = req.validatedData
+    const resetPasswordUrl = process.env.RESET_URL
+
+    const findCitizen = await User.findOne({ emailAddress })
+    if (!findCitizen) {
+      return res.status(404).json({
+        status: "failed",
+        message: "User not found",
+      })
     }
 
+    const html = `
+      <h1>Malawi Immigration</h1>
+      <p>You requested to change your password. Click the link below:</p>
+      <p>${resetPasswordUrl}</p>
+      <p>Please do not share this link with anyone else.</p>
+    `
+    const subject = "Immigration Request for Password Reset"
+
+    await sendEmail(emailAddress, subject, html)
+
+    return res.status(200).json({
+      status: "success",
+      message: `Password reset request sent to your email address ${emailAddress}`,
+    })
+  } catch (error) {
+    next(error)
+  }
 }
-//logic to reset password
-export const resetPassword = async (req,res,next)=> {
-    try {
-        const userId = new mongoose.Types.ObjectId(req.query.id)
-        const {password,confirmPasword} = req.validatedData
-        if(password !== confirmPasword){
-            return res.status(400).json({
-            status: "failed",
-            message: "mismatching passwords"
-         })
-        }
-        const resetHashedPassword = await hashPassword(password)
-        const temp = await User.findByIdAndUpdate(userId,{password: resetHashedPassword }, {new: true})
-         return res.status(200).json({
-            status: "success",
-            message: "resetted their password successfully"
-         })
-    } catch (error) {
-        next(error)    
-    }
-}
-//logic to change passwod
-export const changePassword = async (req,res,next)=> {
-    try {
-        const userId = new mongoose.Types.ObjectId(req.validatedData.userId)
-        const {currentPassword, newPassword, confirmNewPassword} = req.validatedData
-        const user = await User.findOne(userId)
-        const changePasswordHashed = await hashPassword(newPassword)
-        if(!user || !(comparePassword(currentPassword,user.password)) || 
-           !(comparePassword(confirmNewPassword,changePasswordHashed))
-        ){
-            return res.status(500).json({
-            status: "failed",
-            message: "mismatching passwords"
-            })
-        }
-        await User.findByIdAndUpdate(userId,{$set:{password: changePasswordHashed }, new: true})
-        
-        return res.status(200).json({
-            status: "success",
-            message: "password updated successfully"
-            })
-        
-    } catch (error) {
-        next(error)    
+
+//reset password
+export const resetPassword = async (req, res, next) => {
+  try {
+    const userId = new mongoose.Types.ObjectId(req.query.id)
+    const { password, confirmPasword } = req.validatedData
+
+    if (password !== confirmPasword) {
+      return res.status(400).json({
+        status: "failed",
+        message: "Mismatching passwords",
+      })
     }
 
+    const resetHashedPassword = await hashPassword(password)
+    await User.findByIdAndUpdate(
+      userId,
+      { password: resetHashedPassword },
+      { new: true }
+    )
+
+    return res.status(200).json({
+      status: "success",
+      message: "Password reset successfully",
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+//change password
+export const changePassword = async (req, res, next) => {
+  try {
+    const userId = new mongoose.Types.ObjectId(req.validatedData.userId)
+    const { currentPassword, newPassword, confirmNewPassword } =
+      req.validatedData
+
+    const user = await User.findById(userId)
+    if (!user) {
+      return res.status(404).json({
+        status: "failed",
+        message: "User not found",
+      })
+    }
+
+    const isCurrentValid = await comparePassword(
+      currentPassword,
+      user.password
+    )
+    if (!isCurrentValid || newPassword !== confirmNewPassword) {
+      return res.status(400).json({
+        status: "failed",
+        message: "Invalid current password or mismatched new passwords",
+      })
+    }
+
+    const changePasswordHashed = await hashPassword(newPassword)
+    await User.findByIdAndUpdate(userId, {
+      $set: { password: changePasswordHashed },
+    })
+
+    return res.status(200).json({
+      status: "success",
+      message: "Password updated successfully",
+    })
+  } catch (error) {
+    next(error)
+  }
 }
