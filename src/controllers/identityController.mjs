@@ -25,6 +25,7 @@ export const verifyNationalId = async (req, res, next) => {
     const session = await IdentityVerificationSession.create({
       citizenId: citizen._id,
       nationalId,
+      status: "VERIFIED",
       expiresAt: new Date(Date.now() + 15 * 60 * 1000),
     })
 
