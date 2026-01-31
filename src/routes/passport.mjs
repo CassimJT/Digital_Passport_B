@@ -14,5 +14,5 @@ import {
 router.post('/passport/applications', validateRequest(applicationSchema), createApplication)
 router.put('/passport/applications/:id', validateRequest(applicationUpdateSchema), updateApplication)
 router.get('/passport/applications/:id', fetchApplication)
-router.post('/passport/applications', validateRequest(applicationSchema), submitApplication)
+router.post('/passport/applications/:id/submit', validateRequest(applicationSchema), submitApplication)
 export default router;
