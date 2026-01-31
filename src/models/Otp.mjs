@@ -1,40 +1,32 @@
+// models/Otp.mjs
 import mongoose from "mongoose";
-import Nrb from "./Nrb.mjs";
 const { Schema, model } = mongoose;
 
 const otpSchema = new Schema({
-  nationalId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: Nrb,
+  user: {
+    type: Schema.Types.ObjectId,
+    ref: "User",
     required: true,
-    unique: true,
+    index: true,
   },
-  email: {
+  code: {
     type: String,
     required: true,
-    lowercase: true,
-    trim: true,
   },
-  phone: { 
-    type: String, 
-    required: true 
-  },
-  otp: {
+  purpose: {
     type: String,
+    enum: ["LOGIN", "RESET_PASSWORD"],
     required: true,
   },
   status: {
     type: String,
-    default: "not verified",
-    required: true,
-    lowercase: true,
-    trim: true,
+    enum: ["PENDING", "USED", "EXPIRED"],
+    default: "PENDING",
   },
-  createdAt: {
+  expiresAt: {
     type: Date,
-    default: Date.now,
-    expires: 300, // OTP expires after 5 minutes (300 seconds)
+    required: true,
   },
-});
+}, { timestamps: true });
 
-export default model("OTP", otpSchema);
+export default model("Otp", otpSchema);

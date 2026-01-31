@@ -21,88 +21,58 @@ import mongoose from "mongoose"
 /* ============================
    VERIFY OTP
 ============================ */
-export const verifyOTP = async (req, res, next) => {
+export const verifyOtp = async (req, res, next) => {
   try {
-    const { loginSessionId, otp } = req.body
+    const { loginSessionId, otp } = req.validatedData;
 
     if (!mongoose.Types.ObjectId.isValid(loginSessionId)) {
       return res.status(400).json({
         status: "failed",
         message: "Invalid login session",
-      })
+      });
     }
 
-    const otpRecord = await Otp.findById(loginSessionId)
-    if (
-      !otpRecord ||
-      otpRecord.status !== "PENDING" ||
-      otpRecord.expiresAt < new Date() ||
-      otpRecord.code !== otp
-    ) {
+    const session = await Otp.findById(loginSessionId).populate("user");
+    if (!session || session.status !== "PENDING") {
       return res.status(400).json({
         status: "failed",
-        message: "Invalid or expired OTP",
-      })
+        message: "OTP session invalid or expired",
+      });
     }
 
-    otpRecord.status = "VERIFIED"
-    await otpRecord.save()
-
-    const user = await User.findById(otpRecord.userId)
-    if (!user) {
-      return res.status(404).json({
+    if (session.expiresAt < new Date()) {
+      session.status = "EXPIRED";
+      await session.save();
+      return res.status(400).json({
         status: "failed",
-        message: "User not found",
-      })
+        message: "OTP expired",
+      });
     }
 
-    const accessToken = generateAccessToken({
-      sub: user._id,
-      role: user.role,
-      identitySessionId: otpRecord.verificationSession,
-    })
+    if (session.code !== otp) {
+      return res.status(400).json({
+        status: "failed",
+        message: "Invalid OTP",
+      });
+    }
 
-    const refreshToken = generateRefreshToken({
-      sub: user._id,
-    })
+    session.status = "USED";
+    await session.save();
 
-    const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000
-    const refreshTokenExpiresAt = new Date(Date.now() + thirtyDaysInMs)
-
-    await RefreshToken.findOneAndUpdate(
-      { user: user._id },
-      {
-        token: refreshToken,
-        expiresAt: refreshTokenExpiresAt,
-        revoked: false,
-      },
-      {
-        upsert: true,
-        new: true,
-      }
-    )
-
-    res.cookie("refreshLoginToken", refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      expires: refreshTokenExpiresAt,
-    })
+    const accessToken = generateAccessToken(session.user);
+    const refreshToken = generateRefreshToken(session.user);
 
     return res.status(200).json({
       status: "success",
       accessToken,
-      user: {
-        id: user._id,
-        emailAddress: user.emailAddress,
-        role: user.role,
-      },
-      redirectURL: "/dashboard",
-    })
+      refreshToken,
+      user: session.user,
+    });
   } catch (error) {
-    next(error)
+    next(error);
   }
-}
+};
+
 
 /* ============================
    REGISTER USER
@@ -172,18 +142,18 @@ export const registerUser = async (req, res, next) => {
 ============================ */
 export const loginUser = async (req, res, next) => {
   try {
-    const { emailAddress, password, verificationSessionId } = req.validatedData
+    const { emailAddress, password, verificationSessionId } = req.validatedData;
 
     if (!mongoose.Types.ObjectId.isValid(verificationSessionId)) {
       return res.status(400).json({
         status: "failed",
         message: "Invalid verification session",
-      })
+      });
     }
 
     const verificationSession = await IdentityVerificationSession.findById(
       verificationSessionId
-    )
+    );
 
     if (
       !verificationSession ||
@@ -193,53 +163,52 @@ export const loginUser = async (req, res, next) => {
       return res.status(400).json({
         status: "failed",
         message: "Identity verification expired or invalid",
-      })
+      });
     }
 
-    const user = await User.findOne({ emailAddress })
+    const user = await User.findOne({ emailAddress });
     if (!user) {
       return res.status(400).json({
         status: "failed",
         message: "Incorrect username/password",
-      })
+      });
     }
 
-    const isPasswordValid = await comparePassword(password, user.password)
+    const isPasswordValid = await comparePassword(password, user.password);
     if (!isPasswordValid) {
       return res.status(400).json({
         status: "failed",
         message: "Incorrect username/password",
-      })
+      });
     }
 
-    const otpCode = generateRandomCode()
+    const otpCode = generateRandomCode(3); // 6 hex chars
 
     const otp = await Otp.create({
-      userId: user._id,
+      user: user._id,
       purpose: "LOGIN",
       code: otpCode,
-      status: "PENDING",
-      verificationSession: verificationSession._id,
       expiresAt: new Date(Date.now() + 5 * 60 * 1000),
-    })
+    });
 
     const html = `
       <h1>Malawi Immigration</h1>
       <p>Your login verification code is:</p>
       <h2>${otpCode}</h2>
       <p>This code expires in 5 minutes.</p>
-    `
-    await sendEmail(user.emailAddress, "Login Verification", html)
+    `;
+    await sendEmail(user.emailAddress, "Login Verification", html);
 
     return res.status(200).json({
       status: "success",
       loginSessionId: otp._id,
       message: `OTP sent to ${maskEmail(user.emailAddress)}`,
-    })
+    });
   } catch (error) {
-    next(error)
+    next(error);
   }
-}
+};
+
 
 /* ============================
    LOGOUT USER
