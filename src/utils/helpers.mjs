@@ -79,14 +79,15 @@ export const hasRole = (user, roles = []) => {
 //hash the password
 export const hashPassword = async (password) => {
   try {
-    const salt =  await bcrypt.genSalt(saltRounds);
-    const hashedPassword =await bcrypt.hash(password,salt)
-    return hashedPassword;
+    const salt = await bcrypt.genSalt(Number(saltRounds) || 10)
+    const hashedPassword = await bcrypt.hash(password, salt)
+    return hashedPassword
   } catch (error) {
-    return {status:500, message:"error while hashing"}
+    console.error("Error hashing password:", error)
+    throw new Error("Error hashing password")
   }
-   
-};
+}
+
 //copare the raw and hashed password
 export const comparePassword = async (raw, hashed) => {
   // if (!raw || !hashed || typeof raw !== 'string' || typeof hashed !== 'string') {
