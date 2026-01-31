@@ -8,7 +8,7 @@ import {
   requestPasswordReset,
   resetPassword,
   changePassword,
-  verifyOTP
+  verifyOtp
 } from '../controllers/authController.mjs';
 import { validateRequest } from '../middleware/validateRequest.mjs';
 import { registerUserSchema } from '../utils/validators.mjs';
@@ -24,7 +24,7 @@ const router = express.Router();
 
 
 // Basic Auth Routes
-router.post('/verify-otp',verifyOTP);
+router.post('/verify-otp',verifyOtp);
 router.post('/register', validateRequest(registerUserSchema), registerUser);
 router.post('/login', validateRequest(loginValidation), loginUser);
 router.post('/logout', logoutUser);
