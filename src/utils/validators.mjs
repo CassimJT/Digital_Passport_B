@@ -6,8 +6,7 @@ export const registerUserSchema = Joi.object({
   password: Joi.string().required(),
   confirmPassword: Joi.string().required(),
   emailAddress: Joi.string().email().required(),
-  createdAt:Joi.date()
-
+  verificationSessionId: Joi.string().required(),
 
 });
 //EMAIL VALIDATION
