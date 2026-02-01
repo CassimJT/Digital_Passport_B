@@ -23,7 +23,7 @@ import mongoose from "mongoose"
 ============================ */
 export const verifyOtp = async (req, res, next) => {
   try {
-    const { loginSessionId, otp } = req.validatedData;
+    const { loginSessionId, otp } = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(loginSessionId)) {
       return res.status(400).json({
