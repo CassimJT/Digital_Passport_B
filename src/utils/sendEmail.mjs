@@ -12,21 +12,31 @@ const transporter = nodemailer.createTransport({
     }
 })
 
+// Verify transporter
+transporter.verify((error) => {
+  if (error) {
+    console.error("Email server error:", error);
+  } else {
+    console.log("Email server ready");
+  }
+});
+
 //sending the email
 const sendEmail = async (to,subject,html) => {
    try{
      const mailOptions = {
-        from: process.env.EMAIL_USER,
+        from:`"My App" <${process.env.EMAIL_USER}>`,
         to:to,
         subject:subject,
         html:html
     }
     
-    const info = await transporter.sendMail(mailOptions)
+    await transporter.sendMail(mailOptions)
         return {status:200, message:  "email sent succefully"}
    }
    catch(error){
-        return {status:500, message: error}
+        console.error("Send email error:", error);
+        return { status: 500, message: "Failed to send email" };
    }
     
 }

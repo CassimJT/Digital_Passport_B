@@ -59,14 +59,15 @@ export const maskEmail = (email) => {
 };
 
 // Generate random code (e.g., for OTPs or IDs)
-export const generateRandomCode = (length = 3) => {
+export const generateRandomCode = () => {
+  // Generates a number between 0 and 999999
+  const code = crypto.randomInt(0, 1_000_000)
+    .toString()
+    .padStart(6, "0"); // ensures exactly 6 digits
 
-  const code = crypto.randomBytes(length).toString('hex')
-  const createdAt = new Date(Date.now())
-  const expiresAt = new Date(Date.now() + 20 * 60 * 1000 )
-
-  return (code)
+  return code;
 };
+
 
 // Check if user has a given role
 export const hasRole = (user, roles = []) => {
