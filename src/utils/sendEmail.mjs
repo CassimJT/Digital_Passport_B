@@ -1,45 +1,21 @@
-import nodemailer from "nodemailer"
+import { Resend } from "resend";
 
-//transport
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-  connectionTimeout: 10000,
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
+const sendEmail = async (to, subject, html) => {
+  try {
+    await resend.emails.send({
+      from: `"My App" <onboarding@resend.dev>`,
+      to,
+      subject,
+      html,
+    });
 
-// Verify transporter
-transporter.verify((error) => {
-  if (error) {
-    console.error("Email server error:", error);
-  } else {
-    console.log("Email server ready");
+    return { status: 200, message: "Email sent successfully" };
+  } catch (error) {
+    console.error("Send email error:", error);
+    return { status: 500, message: "Failed to send email" };
   }
-});
+};
 
-//sending the email
-const sendEmail = async (to,subject,html) => {
-   try{
-     const mailOptions = {
-        from:`"My App" <${process.env.EMAIL_USER}>`,
-        to:to,
-        subject:subject,
-        html:html
-    }
-    
-    await transporter.sendMail(mailOptions)
-        return {status:200, message:  "email sent succefully"}
-   }
-   catch(error){
-        console.error("Send email error:", error);
-        return { status: 500, message: "Failed to send email" };
-   }
-    
-}
-
-export default sendEmail
+export default sendEmail;
