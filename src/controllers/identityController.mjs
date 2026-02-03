@@ -2,7 +2,10 @@ import NRB from "../models/Nrb.mjs"
 import IdentityVerificationSession from "../models/IdentityVerificationSession.mjs"
 import { maskEmail,maskPhone } from "../utils/helpers.mjs"
 
-//verify
+//verify OTP
+const REFRESH_TOKEN_TTL_MS =
+  Number(process.env.JWT_REFRESH_EXPIRES_IN_MS) || 7 * 24 * 60 * 60 * 1000 // default 7 days
+
 export const verifyNationalId = async (req, res, next) => {
   try {
     const { nationalId } = req.body
@@ -22,16 +25,19 @@ export const verifyNationalId = async (req, res, next) => {
       })
     }
 
+    const expiresAt = new Date(Date.now() + REFRESH_TOKEN_TTL_MS)
+
     const session = await IdentityVerificationSession.create({
       citizenId: citizen._id,
       nationalId,
       status: "VERIFIED",
-      expiresAt: new Date(Date.now() + 15 * 60 * 1000),
+      expiresAt,
     })
 
     return res.status(200).json({
       status: "success",
       referenceId: session._id,
+      expiresAt,
       profile: {
         firstName: citizen.firstName,
         surName: citizen.surName,

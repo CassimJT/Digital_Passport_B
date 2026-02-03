@@ -23,10 +23,18 @@ const identityVerificationSessionSchema = new Schema(
     expiresAt: {
       type: Date,
       required: true,
-      index: { expires: "15m" }, // Mongo TTL
     },
   },
   { timestamps: true }
 )
 
-export default model("IdentityVerificationSession", identityVerificationSessionSchema)
+// TTL — auto-delete exactly at expiresAt
+identityVerificationSessionSchema.index(
+  { expiresAt: 1 },
+  { expireAfterSeconds: 0 }
+)
+
+export default model(
+  "IdentityVerificationSession",
+  identityVerificationSessionSchema
+)
