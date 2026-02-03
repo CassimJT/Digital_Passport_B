@@ -203,6 +203,7 @@ export const loginUser = async (req, res, next) => {
       status: "success",
       loginSessionId: otp._id,
       message: `OTP sent to ${maskEmail(user.emailAddress)}`,
+      otp: otpCode, 
     });
   } catch (error) {
     next(error);
