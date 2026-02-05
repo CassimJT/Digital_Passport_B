@@ -13,10 +13,10 @@ import {
 const router = express.Router();
 
 // Get all users (admin only)
-router.get('/', authenticateJWT, checkRole(['admin']), getAllUsers);
+router.get('/', authenticateJWT, checkRole(['admin','superadmin','officer']), getAllUsers);
 
 // Get a specific user by ID (admin or provider)
-router.get('/:id', authenticateJWT, checkRole(['admin']), getUserById);
+router.get('/:id', authenticateJWT, checkRole(['admin','superadmin','officer']), getUserById);
 
 // Get logged-in user's profile
 router.get('/me/profile', authenticateJWT, getMyProfile);
@@ -25,6 +25,6 @@ router.get('/me/profile', authenticateJWT, getMyProfile);
 router.patch('/me/profile', authenticateJWT, updateUserProfile);
 
 // Delete a user (admin only)
-router.delete('/:id', authenticateJWT, checkRole(['admin']), deleteUser);
+router.delete('/:id', authenticateJWT, checkRole(['admin','superadmin','officer']), deleteUser);
 
 export default router;
