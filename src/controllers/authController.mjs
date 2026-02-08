@@ -71,7 +71,7 @@ export const verifyOtp = async (req, res, next) => {
     res.cookie("refreshLoginToken", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: "lax",
       expires: refreshExpires,
     })
 
@@ -224,7 +224,12 @@ export const logoutUser = async (req, res, next) => {
   try {
     const refreshTokenCookie = req.cookies.refreshLoginToken
     if (!refreshTokenCookie) {
-      return res.status(204).end()
+       console.log('No refresh token cookie found')
+      return res.status(204).json(
+        { 
+          status: 'failed',
+          message: 'No cookie sent'
+        })
     }
 
     await RefreshToken.findOneAndUpdate(
@@ -396,37 +401,3 @@ export const changePassword = async (req, res, next) => {
   }
 }
 
-//promote user
-export const promoteUser = async (req, res, next) => {
-  try {
-    const userId = req.params.id
-    const { role } = req.body
-
-    const allowedRoles = ["admin", "office", "client"]
-
-    if (!allowedRoles.includes(role)) {
-      return res.status(400).json({
-        status: "failed",
-        message: "Invalid role",
-      })
-    }
-
-    const user = await User.findById(userId)
-    if (!user) {
-      return res.status(404).json({
-        status: "failed",
-        message: "User not found",
-      })
-    }
-
-    user.role = role
-    await user.save()
-
-    return res.status(200).json({
-      status: "success",
-      message: "User role updated successfully",
-    })
-  } catch (error) {
-    next(error)
-  }
-}
