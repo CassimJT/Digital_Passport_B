@@ -59,32 +59,34 @@ export const verifyOtp = async (req, res, next) => {
 
     const accessToken = generateAccessToken({ sub: session.user._id })
     const refreshToken = generateRefreshToken({ sub: session.user._id })
-
     const refreshExpires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
 
+    // Store refresh token in DB
     await RefreshToken.create({
       user: session.user._id,
       token: refreshToken,
       expiresAt: refreshExpires,
     })
 
+    // Set httpOnly cookie for refresh token
     res.cookie("refreshLoginToken", refreshToken, {
-      httpOnly: true,
+      httpOnly: true,          
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      sameSite: "strict",
       expires: refreshExpires,
     })
 
+    // Return only access token + user
     return res.status(200).json({
       status: "success",
       accessToken,
-      refreshToken,
       user: session.user,
     })
   } catch (error) {
     next(error)
   }
 }
+
 
 // Register User
 export const registerUser = async (req, res, next) => {
