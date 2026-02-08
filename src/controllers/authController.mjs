@@ -57,7 +57,10 @@ export const verifyOtp = async (req, res, next) => {
     session.status = "USED"
     await session.save()
 
-    const accessToken = generateAccessToken({ sub: session.user._id })
+    const accessToken = generateAccessToken({ 
+      sub: session.user._id,
+      role: session.user.role,
+    })
     const refreshToken = generateRefreshToken({ sub: session.user._id })
     const refreshExpires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
 
