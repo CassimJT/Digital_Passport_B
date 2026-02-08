@@ -136,6 +136,41 @@ export const deleteUser = async (req,res)=> {
    
 }
 
+//promote user
+export const promoteUser = async (req, res, next) => {
+  try {
+    const userId = req.params.id
+    const { role } = req.body
+
+    const allowedRoles = ["admin", "office", "client"]
+
+    if (!allowedRoles.includes(role)) {
+      return res.status(400).json({
+        status: "failed",
+        message: "Invalid role",
+      })
+    }
+
+    const user = await User.findById(userId)
+    if (!user) {
+      return res.status(404).json({
+        status: "failed",
+        message: "User not found",
+      })
+    }
+
+    user.role = role
+    await user.save()
+
+    return res.status(200).json({
+      status: "success",
+      message: "User role updated successfully",
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
 
 
   
