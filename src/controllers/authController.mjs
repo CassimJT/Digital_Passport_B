@@ -244,18 +244,12 @@ export const refreshToken = async (req, res, next) => {
   try {
     const refreshTokenCookie = req.cookies.refreshLoginToken
     if (!refreshTokenCookie) {
-      return res.status(401).json({
-        status: "failed",
-        message: "Missing refresh token",
-      })
+      return res.status(401).json({ status: "failed", message: "Missing refresh token" })
     }
 
     const decoded = verifyRefreshToken(refreshTokenCookie)
     if (!decoded?.sub) {
-      return res.status(401).json({
-        status: "failed",
-        message: "Invalid refresh token",
-      })
+      return res.status(401).json({ status: "failed", message: "Invalid refresh token" })
     }
 
     const storedToken = await RefreshToken.findOne({
@@ -265,13 +259,9 @@ export const refreshToken = async (req, res, next) => {
     })
 
     if (!storedToken) {
-      return res.status(401).json({
-        status: "failed",
-        message: "Refresh token revoked or expired",
-      })
+      return res.status(401).json({ status: "failed", message: "Refresh token revoked or expired" })
     }
 
-    // Rotate refresh token
     const newRefreshToken = generateRefreshToken({ sub: decoded.sub })
     const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
 
@@ -290,14 +280,13 @@ export const refreshToken = async (req, res, next) => {
     res.cookie("refreshLoginToken", newRefreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: "lax", 
       expires: expiresAt,
     })
 
     return res.status(200).json({
       status: "success",
-      accessToken,
-      refreshToken: newRefreshToken,
+      accessToken, 
     })
   } catch (error) {
     next(error)
