@@ -6,7 +6,8 @@ import {
   getUserById, 
   getMyProfile, 
   updateUserProfile, 
-  deleteUser 
+  deleteUser,
+  promoteUser,
 } from '../controllers/userController.mjs';
 
 
@@ -26,5 +27,8 @@ router.patch('/me/profile', authenticateJWT, updateUserProfile);
 
 // Delete a user (admin only)
 router.delete('/:id', authenticateJWT, checkRole(['admin','superadmin','officer']), deleteUser);
+
+// Promote a user (admin only)
+router.patch('/:id/promote', authenticateJWT, checkRole(['admin','superadmin']), promoteUser);
 
 export default router;
