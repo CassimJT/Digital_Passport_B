@@ -15,12 +15,10 @@ const router = express.Router();
 
 // Get all users (admin only)
 router.get('/', authenticateJWT, checkRole(['admin','superadmin','officer']), getAllUsers);
-
-// Get a specific user by ID (admin or provider)
-router.get('/:id', authenticateJWT, checkRole(['admin','superadmin','officer']), getUserById);
-
 // Get logged-in user's profile
 router.get('/me/profile', authenticateJWT, getMyProfile);
+// Get a specific user by ID (admin or provider)
+router.get('/:id', authenticateJWT, checkRole(['admin','superadmin','officer']), getUserById);
 
 // Update user profile (self)
 router.patch('/me/profile', authenticateJWT, updateUserProfile);
