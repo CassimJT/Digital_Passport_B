@@ -70,9 +70,10 @@ export const verifyOtp = async (req, res, next) => {
 
     // Set httpOnly cookie for refresh token
     res.cookie("refreshLoginToken", refreshToken, {
-      httpOnly: true,          
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      path: "/",
       expires: refreshExpires,
     })
 
