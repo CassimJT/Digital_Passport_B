@@ -16,7 +16,7 @@ import { authenticateJWT } from '../middleware/authMiddleware.mjs';
 import { checkRole } from '../middleware/roleMiddleware.mjs';
 
 router.post(
-  "/passport/applications",
+  "/applications",
   authenticateJWT,
   checkRole(["client"]),
   validateRequest(createApplicationSchema),
@@ -24,7 +24,7 @@ router.post(
 )
 
 router.put(
-  "/passport/applications/:id",
+  "/applications/:id",
   authenticateJWT,
   checkRole(["client"]),
   validateRequest(applicationIdParamSchema, "params"),
@@ -33,7 +33,7 @@ router.put(
 )
 
 router.get(
-  "/passport/applications/:id",
+  "/applications/:id",
   authenticateJWT,
   checkRole(["client"]),
   validateRequest(applicationIdParamSchema, "params"),
@@ -41,7 +41,7 @@ router.get(
 )
 
 router.post(
-  "/passport/applications/:id/submit",
+  "/applications/:id/submit",
   authenticateJWT,
   checkRole(["client"]),
   validateRequest(applicationIdParamSchema, "params"),
