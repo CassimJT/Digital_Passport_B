@@ -24,54 +24,44 @@ export const verifyOtp = async (req, res, next) => {
     const { loginSessionId, otp } = req.body
 
     if (!mongoose.Types.ObjectId.isValid(loginSessionId)) {
-      return res.status(400).json({
-        status: "failed",
-        message: "Invalid login session",
-      })
+      return res.status(400).json({ status: "failed", message: "Invalid login session" })
     }
 
     const session = await Otp.findById(loginSessionId).populate("user")
     if (!session || session.status !== "PENDING") {
-      return res.status(400).json({
-        status: "failed",
-        message: "OTP session invalid or expired",
-      })
+      return res.status(400).json({ status: "failed", message: "OTP session invalid or expired" })
     }
 
     if (session.expiresAt < new Date()) {
       session.status = "EXPIRED"
       await session.save()
-      return res.status(400).json({
-        status: "failed",
-        message: "OTP expired",
-      })
+      return res.status(400).json({ status: "failed", message: "OTP expired" })
     }
 
     if (session.code !== otp) {
-      return res.status(400).json({
-        status: "failed",
-        message: "Invalid OTP",
-      })
+      return res.status(400).json({ status: "failed", message: "Invalid OTP" })
     }
 
     session.status = "USED"
     await session.save()
 
-    const accessToken = generateAccessToken({ 
+    const accessToken = generateAccessToken({
       sub: session.user._id,
       role: session.user.role,
     })
-    const refreshToken = generateRefreshToken({ sub: session.user._id })
+
+    const refreshToken = generateRefreshToken({
+      sub: session.user._id,
+    })
+
     const refreshExpires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
 
-    // Store refresh token in DB
     await RefreshToken.create({
       user: session.user._id,
       token: refreshToken,
       expiresAt: refreshExpires,
     })
 
-    // Set httpOnly cookie for refresh token
     res.cookie("refreshLoginToken", refreshToken, {
       httpOnly: true,
       secure: true,
@@ -80,7 +70,6 @@ export const verifyOtp = async (req, res, next) => {
       expires: refreshExpires,
     })
 
-    // Return only access token + user
     return res.status(200).json({
       status: "success",
       accessToken,
@@ -230,12 +219,7 @@ export const logoutUser = async (req, res, next) => {
   try {
     const refreshTokenCookie = req.cookies.refreshLoginToken
     if (!refreshTokenCookie) {
-       console.log('No refresh token cookie found')
-      return res.status(204).json(
-        { 
-          status: 'failed',
-          message: 'No cookie sent'
-        })
+      return res.status(204).json({ status: "success" })
     }
 
     await RefreshToken.findOneAndUpdate(
@@ -243,17 +227,26 @@ export const logoutUser = async (req, res, next) => {
       { revoked: true }
     )
 
-    res.clearCookie("refreshLoginToken")
+    res.clearCookie("refreshLoginToken", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      path: "/",
+    })
+
     return res.status(200).json({ status: "success" })
   } catch (error) {
     next(error)
   }
 }
 
+
 // Refresh Token
 export const refreshToken = async (req, res, next) => {
   try {
     const refreshTokenCookie = req.cookies.refreshLoginToken
+    console.log("Refresh cookie:", refreshTokenCookie)
+
     if (!refreshTokenCookie) {
       return res.status(401).json({ status: "failed", message: "Missing refresh token" })
     }
@@ -286,24 +279,26 @@ export const refreshToken = async (req, res, next) => {
       expiresAt,
     })
 
-    const accessToken = generateAccessToken({ sub: decoded.sub })
+    const accessToken = generateAccessToken({
+      sub: decoded.sub,
+    })
 
     res.cookie("refreshLoginToken", newRefreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax", 
+      secure: true,
+      sameSite: "none",
+      path: "/",
       expires: expiresAt,
     })
 
     return res.status(200).json({
       status: "success",
-      accessToken, 
+      accessToken,
     })
   } catch (error) {
     next(error)
   }
 }
-
 
 // Request Password Reset
 export const requestPasswordReset = async (req, res, next) => {
