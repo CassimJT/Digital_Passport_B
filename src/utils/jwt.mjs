@@ -11,7 +11,7 @@ const {
   JWT_REFRESH_EXPIRATION,
 } = process.env
 
-// ---------------- ACCESS TOKEN ----------------
+// ---------- ACCESS TOKEN ----------
 export const generateAccessToken = payload => {
   return jwt.sign(
     {
@@ -27,7 +27,7 @@ export const verifyAccessToken = token => {
   return jwt.verify(token, JWT_ACCESS_SECRET)
 }
 
-// ---------------- REFRESH TOKEN ----------------
+// ---------- REFRESH TOKEN ----------
 export const generateRefreshToken = payload => {
   return jwt.sign(
     {
@@ -35,7 +35,7 @@ export const generateRefreshToken = payload => {
       jti: uuidv4(),
     },
     JWT_REFRESH_SECRET,
-    { expiresIn: JWT_REFRESH_EXPIRATION || "1d" }
+    { expiresIn: JWT_REFRESH_EXPIRATION || "30d" }
   )
 }
 

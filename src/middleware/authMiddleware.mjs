@@ -1,26 +1,29 @@
-import jwt from 'jsonwebtoken';
-import dotenv from 'dotenv';
-import { verifyAccessToken } from '../utils/jwt.mjs';
+import { verifyAccessToken } from "../utils/jwt.mjs"
+import User from "../models/User.mjs"
 
-dotenv.config(); 
-export const authenticateJWT = (req, res, next) => {
-  const authHeader = req.headers.authorization
-  if (!authHeader?.startsWith("Bearer ")) {
-    return res.status(401).json({ message: "Not authenticated" })
-  }
-
-  const token = authHeader.split(" ")[1]
-
+export const authenticateJWT = async (req, res, next) => {
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET)
+    const authHeader = req.headers.authorization
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ message: "Missing token" })
+    }
+
+    const token = authHeader.split(" ")[1]
+    const decoded = verifyAccessToken(token)
+
+    // decoded.sub === userId
+    const user = await User.findById(decoded.sub).select("-password")
+    if (!user) {
+      return res.status(401).json({ message: "Invalid token" })
+    }
 
     req.user = {
-      id: decoded.sub,
-      role: decoded.role,
+      id: user._id,
+      role: user.role,
     }
 
     next()
-  } catch {
+  } catch (err) {
     return res.status(401).json({ message: "Invalid token" })
   }
 }
