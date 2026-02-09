@@ -244,34 +244,42 @@ export const logoutUser = async (req, res, next) => {
 // Refresh Token
 export const refreshToken = async (req, res, next) => {
   try {
-    const refreshTokenCookie = req.cookies.refreshLoginToken
-    console.log("Refresh cookie:", refreshTokenCookie)
+    const token = req.cookies.refreshLoginToken
+    console.log("Refresh cookie:", token)
 
-    if (!refreshTokenCookie) {
+    if (!token) {
       return res.status(401).json({ status: "failed", message: "Missing refresh token" })
     }
 
-    const decoded = verifyRefreshToken(refreshTokenCookie)
+    const decoded = verifyRefreshToken(token)
     if (!decoded?.sub) {
       return res.status(401).json({ status: "failed", message: "Invalid refresh token" })
     }
 
-    const storedToken = await RefreshToken.findOne({
-      token: refreshTokenCookie,
-      revoked: false,
-      expiresAt: { $gt: new Date() },
-    })
+    let stored = await RefreshToken.findOne({ token })
 
-    if (!storedToken) {
-      return res.status(401).json({ status: "failed", message: "Refresh token revoked or expired" })
+    // Allow reuse of replaced tokens (race-condition safe)
+    if (!stored && decoded.jti) {
+      stored = await RefreshToken.findOne({ replacedByToken: token })
     }
 
+    if (!stored || stored.expiresAt < new Date()) {
+      return res.status(401).json({ status: "failed", message: "Refresh token expired" })
+    }
+
+    // Already rotated — just issue new access token
+    if (stored.revoked && stored.replacedByToken) {
+      const accessToken = generateAccessToken({ sub: decoded.sub })
+      return res.status(200).json({ status: "success", accessToken })
+    }
+
+    // Normal rotation
     const newRefreshToken = generateRefreshToken({ sub: decoded.sub })
     const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
 
-    storedToken.revoked = true
-    storedToken.replacedByToken = newRefreshToken
-    await storedToken.save()
+    stored.revoked = true
+    stored.replacedByToken = newRefreshToken
+    await stored.save()
 
     await RefreshToken.create({
       user: decoded.sub,
@@ -279,9 +287,7 @@ export const refreshToken = async (req, res, next) => {
       expiresAt,
     })
 
-    const accessToken = generateAccessToken({
-      sub: decoded.sub,
-    })
+    const accessToken = generateAccessToken({ sub: decoded.sub })
 
     res.cookie("refreshLoginToken", newRefreshToken, {
       httpOnly: true,
@@ -299,6 +305,7 @@ export const refreshToken = async (req, res, next) => {
     next(error)
   }
 }
+
 
 // Request Password Reset
 export const requestPasswordReset = async (req, res, next) => {

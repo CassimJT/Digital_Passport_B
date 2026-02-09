@@ -1,64 +1,44 @@
-import jwt from 'jsonwebtoken';
-import dotenv from 'dotenv';
+import jwt from "jsonwebtoken"
+import dotenv from "dotenv"
+import { v4 as uuidv4 } from "uuid"
 
-dotenv.config();
+dotenv.config()
 
 const {
   JWT_ACCESS_SECRET,
   JWT_ACCESS_EXPIRATION,
   JWT_REFRESH_SECRET,
-  JWT_REFRESH_EXPIRATION
-} = process.env;
+  JWT_REFRESH_EXPIRATION,
+} = process.env
 
-const jwtTokenSecret=JWT_ACCESS_SECRET
-const jwtAccesExpiration=JWT_ACCESS_EXPIRATION
-const jwtRefreshsecret=JWT_REFRESH_SECRET
-const jwtRefreshExpiration=JWT_REFRESH_EXPIRATION
+// ---------------- ACCESS TOKEN ----------------
+export const generateAccessToken = payload => {
+  return jwt.sign(
+    {
+      sub: payload.sub,
+      role: payload.role,
+    },
+    JWT_ACCESS_SECRET,
+    { expiresIn: JWT_ACCESS_EXPIRATION || "15m" }
+  )
+}
 
-/**
- * Generate Access Token for a user
- * @param {Object} user - Object with _id, email, role
- * @returns {String} token
- */
-export const generateAccessToken = (user) => {
-  const accessPayload = {
-    userId: user._id, 
-    citizenId: user.nationalId,
-    role: user.role
-  };
-  console.log(accessPayload)
-  const accessToken = jwt.sign(accessPayload,jwtTokenSecret,{expiresIn: jwtAccesExpiration})
-  return (accessToken);
-  
-};
+export const verifyAccessToken = token => {
+  return jwt.verify(token, JWT_ACCESS_SECRET)
+}
 
-/**
- * Generate Refresh Token for a user
- * @param {Object} user - Object with _id, email, role
- * @returns {String} token
- */ 
-export const generateRefreshToken = (user) => {
-  const refreshPayload = {useID: user._id}
-  const refreshToken = jwt.sign(refreshPayload,jwtRefreshsecret,{expiresIn:jwtRefreshExpiration})
-  return (refreshToken);
-};
+// ---------------- REFRESH TOKEN ----------------
+export const generateRefreshToken = payload => {
+  return jwt.sign(
+    {
+      sub: payload.sub,
+      jti: uuidv4(),
+    },
+    JWT_REFRESH_SECRET,
+    { expiresIn: JWT_REFRESH_EXPIRATION || "1d" }
+  )
+}
 
-/**
- * Verify Access Token
- * @param {String} token
- * @returns {Object|null}
- */
-export const verifyAccessToken = (token) => {
-  return jwt.verify(token,JWT_ACCESS_SECRET) ;
-  
-};
-
-/**
- * Verify Refresh Token
- * @param {String} token
- * @returns {Object|null}
- */
-export const verifyRefreshToken = (token) => {
-  return jwt.verify(token,JWT_REFRESH_SECRET)
-  
-};
+export const verifyRefreshToken = token => {
+  return jwt.verify(token, JWT_REFRESH_SECRET)
+}
