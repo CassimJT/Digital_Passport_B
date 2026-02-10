@@ -1,10 +1,10 @@
 // CREATE
 export const createApplication = async (req, res, next) => {
   try {
-    const { type, formData ,verificationSessionId} = req.validatedData
+    const { type, formData, identitySessionId } = req.validatedData
     //const identitySessionId = req.user.identitySessionId
 
-    if (!verificationSessionId) {
+    if (!identitySessionId) {
       return res.status(400).json({
         status: "failed",
         message: "Missing identity verification session",
@@ -15,7 +15,7 @@ export const createApplication = async (req, res, next) => {
       type,
       formData,
       applicant: req.user.sub,
-      identitySession: verificationSessionId,
+      identitySession: identitySessionId,
       status: "DRAFT",
     })
 
