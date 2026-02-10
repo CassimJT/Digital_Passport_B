@@ -91,6 +91,7 @@ export const createApplicationSchema = Joi.object({
     .required(),
 
   formData: Joi.object().unknown(true).default({}),
+  identitySessionId: Joi.string().required(),
 })
 
 export const updateApplicationSchema = Joi.object({
