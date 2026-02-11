@@ -45,31 +45,29 @@ export const getUserById = async (req,res, next)=> {
 //logic to get profile
 export const getMyProfile = async (req,res,next)=> {
     try {
-        const id = req.user.userId
+        const id = req.user.id  
         const userProfile = await User.findById(id)
 
         if(!userProfile){
             return res.status(404).json({
                 status: "failed", 
-                message: "Not Found"
+                message: "User profile not found"
             })
         }
 
         return res.status(200).json({
             status: "success",
-            message: userProfile
+            user: userProfile  
         })
     } catch (error) {
         next(error)
-        
     }
-    
 }
 //logic to update user profile
 export const updateUserProfile = async (req,res, next)=> {
     try{
 
-        const userId = new mongoose.Types.ObjectId(req.user.userId)
+        const userId = req.user.id
         const {emailAddress, residentialAddress} = req.body;
         const updates = {emailAddress,residentialAddress}
         // Define allowed fields for update
