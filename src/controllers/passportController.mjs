@@ -90,10 +90,11 @@ export const fetchApplication = async (req, res, next) => {
 export const submitApplication = async (req, res, next) => {
   try {
     const { id } = req.params
+    const userId = req.user.id
 
     const application = await Application.findOne({
       _id: id,
-      applicant: req.user.id,
+      applicant: userId,
       status: { $in: ["DRAFT", "IN_PROGRESS"] },
     })
 
