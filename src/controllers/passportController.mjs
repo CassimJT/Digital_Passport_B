@@ -1,3 +1,5 @@
+import Application from "../models/Application.mjs"
+
 // CREATE
 export const createApplication = async (req, res, next) => {
   try {
