@@ -4,6 +4,7 @@ import Application from "../models/Application.mjs"
 export const createApplication = async (req, res, next) => {
   try {
     const { type, formData, identitySessionId } = req.validatedData
+    const userId = req.user.id
     //const identitySessionId = req.user.identitySessionId
 
     if (!identitySessionId) {
@@ -16,7 +17,7 @@ export const createApplication = async (req, res, next) => {
     const application = await Application.create({
       type,
       formData,
-      applicant: req.user.sub,
+      applicant: userId,
       identitySession: identitySessionId,
       status: "DRAFT",
     })
