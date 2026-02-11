@@ -5,7 +5,6 @@ import sendEmail from "../utils/sendEmail.mjs"
 import {
   generateAccessToken,
   generateRefreshToken,
-  verifyAccessToken,
   verifyRefreshToken,
 } from "../utils/jwt.mjs"
 import {
@@ -29,7 +28,7 @@ export const verifyOtp = async (req, res, next) => {
 
     const session = await Otp.findById(loginSessionId).populate("user")
     if (!session || session.status !== "PENDING") {
-      return res.status(400).json({ status: "failed", message: "OTP session invalid or expired" })
+      return res.status(400).json({ status: "failed", message: "OTP session invalid" })
     }
 
     if (session.expiresAt < new Date()) {
@@ -45,16 +44,11 @@ export const verifyOtp = async (req, res, next) => {
     session.status = "USED"
     await session.save()
 
-    const accessToken = generateAccessToken({
-      sub: session.user._id,
-      role: session.user.role,
-    })
+    const accessToken = generateAccessToken(session.user)
+    const refreshToken = generateRefreshToken(session.user)
+    const decoded = verifyRefreshToken(refreshToken)
 
-    const refreshToken = generateRefreshToken({
-      sub: session.user._id,
-    })
-
-    const refreshExpires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+    const refreshExpires = new Date(decoded.exp * 1000)
 
     await RefreshToken.create({
       user: session.user._id,
@@ -81,6 +75,135 @@ export const verifyOtp = async (req, res, next) => {
   }
 }
 
+// Login User
+export const loginUser = async (req, res, next) => {
+  try {
+    const { emailAddress, password, verificationSessionId } = req.validatedData
+
+    if (!mongoose.Types.ObjectId.isValid(verificationSessionId)) {
+      return res.status(400).json({ status: "failed", message: "Invalid verification session" })
+    }
+
+    const verificationSession = await IdentityVerificationSession.findById(verificationSessionId)
+    if (!verificationSession || verificationSession.status !== "VERIFIED" || verificationSession.expiresAt < new Date()) {
+      return res.status(400).json({ status: "failed", message: "Identity verification expired" })
+    }
+
+    const user = await User.findOne({ emailAddress })
+    if (!user) {
+      return res.status(400).json({ status: "failed", message: "Incorrect username/password" })
+    }
+
+    const isPasswordValid = await comparePassword(password, user.password)
+    if (!isPasswordValid) {
+      return res.status(400).json({ status: "failed", message: "Incorrect username/password" })
+    }
+
+    const otpCode = generateRandomCode(3)
+
+    const otp = await Otp.create({
+      user: user._id,
+      purpose: "LOGIN",
+      code: otpCode,
+      expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+    })
+
+    const html = `
+      <h1>Malawi Immigration</h1>
+      <p>Your login verification code is:</p>
+      <h2>${otpCode}</h2>
+      <p>This code expires in 5 minutes.</p>
+    `
+    await sendEmail(user.emailAddress, "Login Verification", html)
+
+    return res.status(200).json({
+      status: "success",
+      loginSessionId: otp._id,
+      message: `OTP sent to ${maskEmail(user.emailAddress)}`,
+      otp: otpCode,
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+// Logout User
+export const logoutUser = async (req, res, next) => {
+  try {
+    const refreshTokenCookie = req.cookies.refreshLoginToken
+    if (refreshTokenCookie) {
+      await RefreshToken.findOneAndUpdate(
+        { token: refreshTokenCookie },
+        { revoked: true }
+      )
+    }
+
+    res.clearCookie("refreshLoginToken", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      path: "/",
+    })
+
+    return res.status(200).json({ status: "success" })
+  } catch (error) {
+    next(error)
+  }
+}
+// Refresh Token
+export const refreshToken = async (req, res, next) => {
+  try {
+    const refreshTokenCookie = req.cookies.refreshLoginToken
+    if (!refreshTokenCookie) {
+      return res.status(401).json({ status: "failed", message: "Missing refresh token" })
+    }
+
+    const decoded = verifyRefreshToken(refreshTokenCookie)
+
+    const storedToken = await RefreshToken.findOne({
+      token: refreshTokenCookie,
+      revoked: false,
+      expiresAt: { $gt: new Date() },
+    })
+
+    if (!storedToken) {
+      return res.status(401).json({ status: "failed", message: "Refresh token expired or revoked" })
+    }
+
+    // Rotate
+    const newRefreshToken = generateRefreshToken({ _id: decoded.sub })
+    const newDecoded = verifyRefreshToken(newRefreshToken)
+    const newExpires = new Date(newDecoded.exp * 1000)
+
+    storedToken.revoked = true
+    storedToken.replacedByToken = newRefreshToken
+    await storedToken.save()
+
+    await RefreshToken.create({
+      user: decoded.sub,
+      token: newRefreshToken,
+      expiresAt: newExpires,
+      revoked: false,
+    })
+
+    const accessToken = generateAccessToken({ _id: decoded.sub, role: req.user?.role })
+
+    res.cookie("refreshLoginToken", newRefreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      path: "/",
+      expires: newExpires,
+    })
+
+    return res.status(200).json({
+      status: "success",
+      accessToken,
+    })
+  } catch (error) {
+    return res.status(401).json({ status: "failed", message: "Invalid refresh token" })
+  }
+}
 
 // Register User
 export const registerUser = async (req, res, next) => {
@@ -142,166 +265,6 @@ export const registerUser = async (req, res, next) => {
     next(error)
   }
 }
-
-// Login User
-export const loginUser = async (req, res, next) => {
-  try {
-    const { emailAddress, password, verificationSessionId } = req.validatedData;
-
-    if (!mongoose.Types.ObjectId.isValid(verificationSessionId)) {
-      return res.status(400).json({
-        status: "failed",
-        message: "Invalid verification session",
-      });
-    }
-
-    const verificationSession = await IdentityVerificationSession.findById(
-      verificationSessionId
-    );
-
-    if (
-      !verificationSession ||
-      verificationSession.status !== "VERIFIED" ||
-      verificationSession.expiresAt < new Date()
-    ) {
-      return res.status(400).json({
-        status: "failed",
-        message: "Identity verification expired or invalid",
-      });
-    }
-
-    const user = await User.findOne({ emailAddress });
-    if (!user) {
-      return res.status(400).json({
-        status: "failed",
-        message: "Incorrect username/password",
-      });
-    }
-
-    const isPasswordValid = await comparePassword(password, user.password);
-    if (!isPasswordValid) {
-      return res.status(400).json({
-        status: "failed",
-        message: "Incorrect username/password",
-      });
-    }
-
-    const otpCode = generateRandomCode(3); // 6 hex chars
-
-    const otp = await Otp.create({
-      user: user._id,
-      purpose: "LOGIN",
-      code: otpCode,
-      expiresAt: new Date(Date.now() + 5 * 60 * 1000),
-    });
-
-    const html = `
-      <h1>Malawi Immigration</h1>
-      <p>Your login verification code is:</p>
-      <h2>${otpCode}</h2>
-      <p>This code expires in 5 minutes.</p>
-    `;
-    await sendEmail(user.emailAddress, "Login Verification", html);
-
-    return res.status(200).json({
-      status: "success",
-      loginSessionId: otp._id,
-      message: `OTP sent to ${maskEmail(user.emailAddress)}`,
-      otp: otpCode, 
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-
-// Logout User
-export const logoutUser = async (req, res, next) => {
-  try {
-    const refreshTokenCookie = req.cookies.refreshLoginToken
-    if (!refreshTokenCookie) {
-      return res.status(204).json({ status: "success" })
-    }
-
-    await RefreshToken.findOneAndUpdate(
-      { token: refreshTokenCookie },
-      { revoked: true }
-    )
-
-    res.clearCookie("refreshLoginToken", {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-      path: "/",
-    })
-
-    return res.status(200).json({ status: "success" })
-  } catch (error) {
-    next(error)
-  }
-}
-
-
-// Refresh Token
-export const refreshToken = async (req, res, next) => {
-  try {
-    const refreshTokenCookie = req.cookies.refreshLoginToken
-    if (!refreshTokenCookie) {
-      return res.status(401).json({ status: "failed", message: "Missing refresh token" })
-    }
-
-    const decoded = verifyRefreshToken(refreshTokenCookie)
-    if (!decoded?.sub || !decoded?.jti) {
-      return res.status(401).json({ status: "failed", message: "Invalid refresh token" })
-    }
-
-    const storedToken = await RefreshToken.findOne({
-      token: refreshTokenCookie,
-      revoked: false,
-      expiresAt: { $gt: new Date() },
-    })
-
-    if (!storedToken) {
-      return res.status(401).json({ status: "failed", message: "Refresh token revoked or expired" })
-    }
-
-    const newRefreshToken = generateRefreshToken({ sub: decoded.sub })
-    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-
-    storedToken.revoked = true
-    storedToken.replacedByToken = newRefreshToken
-    await storedToken.save()
-
-    await RefreshToken.create({
-      user: decoded.sub,
-      token: newRefreshToken,
-      expiresAt,
-      revoked: false,
-    })
-
-    const accessToken = generateAccessToken({
-      sub: decoded.sub,
-      role: storedToken.user.role,
-    })
-
-    res.cookie("refreshLoginToken", newRefreshToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-      path: "/",
-      expires: expiresAt,
-    })
-
-    return res.status(200).json({
-      status: "success",
-      accessToken,
-    })
-  } catch (error) {
-    next(error)
-  }
-}
-
-
 
 // Request Password Reset
 export const requestPasswordReset = async (req, res, next) => {
