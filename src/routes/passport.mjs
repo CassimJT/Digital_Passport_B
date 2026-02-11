@@ -27,7 +27,7 @@ router.put(
   "/applications/:id",
   authenticateJWT,
   checkRole(["client"]),
-  validateRequest(applicationIdParamSchema, "params"),
+  validateRequest(applicationIdParamSchema),
   validateRequest(updateApplicationSchema),
   updateApplication
 )
@@ -36,7 +36,7 @@ router.get(
   "/applications/:id",
   authenticateJWT,
   checkRole(["client"]),
-  validateRequest(applicationIdParamSchema, "params"),
+  validateRequest(applicationIdParamSchema),
   fetchApplication
 )
 
@@ -44,7 +44,7 @@ router.post(
   "/applications/:id/submit",
   authenticateJWT,
   checkRole(["client"]),
-  validateRequest(applicationIdParamSchema, "params"),
+  validateRequest(applicationIdParamSchema),
   submitApplication
 )
 
