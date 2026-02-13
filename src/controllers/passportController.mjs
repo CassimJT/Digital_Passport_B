@@ -1,4 +1,6 @@
 import Application from "../models/Application.mjs"
+import { canTransition } from "../utils/helpers.mjs"
+import Imigration from "../models/Imigration.mjs"
 
 // CREATE
 export const createApplication = async (req, res, next) => {
@@ -86,28 +88,33 @@ export const fetchApplication = async (req, res, next) => {
   }
 }
 
-// SUBMIT
+// SUBMIT (Atomic & Idempotent)
 export const submitApplication = async (req, res, next) => {
   try {
     const { id } = req.params
     const userId = req.user.id
 
-    const application = await Application.findOne({
-      _id: id,
-      applicant: userId,
-      status: { $in: ["DRAFT", "IN_PROGRESS"] },
-    })
+    const application = await Application.findOneAndUpdate(
+      {
+        _id: id,
+        applicant: userId,
+        status: { $in: ["DRAFT", "IN_PROGRESS"] }, 
+      },
+      {
+        $set: {
+          status: "SUBMITTED",
+          submittedAt: new Date(),
+        },
+      },
+      { new: true }
+    )
 
     if (!application) {
-      return res.status(404).json({
+      return res.status(400).json({
         status: "failed",
-        message: "Application not found or already submitted",
+        message: "Application already submitted or not editable",
       })
     }
-
-    application.status = "SUBMITTED"
-    application.submittedAt = new Date()
-    await application.save()
 
     return res.status(200).json({
       status: "success",
@@ -115,5 +122,108 @@ export const submitApplication = async (req, res, next) => {
     })
   } catch (error) {
     next(error)
+  }
+}
+
+
+// Fetch applications for review
+export const fetchApplicationsForReview = async (req, res, next) => {
+  try {
+    const applications = await Application.find({
+      status: "SUBMITTED",
+    }).populate("applicant")
+
+    return res.json({ status: "success", data: applications })
+  } catch (err) {
+    next(err)
+  }
+}
+
+// Start application review
+export const startReview = async (req, res, next) => {
+  try {
+    const application = await Application.findById(req.params.id)
+
+    if (!application || application.status !== "SUBMITTED") {
+      return res.status(400).json({
+        status: "failed",
+        message: "Application not eligible for review",
+      })
+    }
+
+    application.status = "UNDER_REVIEW"
+    application.reviewer = req.user.id
+    await application.save()
+
+    return res.json({ status: "success", data: application })
+  } catch (err) {
+    next(err)
+  }
+}
+
+// Approve application
+export const approveApplication = async (req, res, next) => {
+  try {
+    const application = await Application.findById(req.params.id)
+
+    if (!application || application.status !== "UNDER_REVIEW") {
+      return res.status(400).json({
+        status: "failed",
+        message: "Application not under review",
+      })
+    }
+
+    // Create Immigration Record
+    const immigrationRecord = await Immigration.create({
+      client: application.applicant,
+      passportType: application.type.toLowerCase(),
+      serviceType: application.formData.serviceType,
+      bookletType: application.formData.bookletType,
+      nationalId: application.formData.nationalId,
+      height: application.formData.height,
+      placeOfBirth: application.formData.placeOfBirth,
+      mothersPlaceOfBirth: application.formData.mothersPlaceOfBirth,
+      paymentStatus: "completed",
+    })
+
+    application.status = "APPROVED"
+    application.reviewedAt = new Date()
+    application.immigrationRecord = immigrationRecord._id
+
+    await application.save()
+
+    return res.json({
+      status: "success",
+      data: application,
+    })
+  } catch (err) {
+    next(err)
+  }
+}
+
+// Reject application
+export const rejectApplication = async (req, res, next) => {
+  try {
+    const application = await Application.findById(req.params.id)
+
+    if (!application || application.status !== "UNDER_REVIEW") {
+      return res.status(400).json({
+        status: "failed",
+        message: "Application not under review",
+      })
+    }
+
+    application.status = "REJECTED"
+    application.reviewedAt = new Date()
+    application.reviewer = req.user.id
+
+    await application.save()
+
+    return res.json({
+      status: "success",
+      data: application,
+    })
+  } catch (err) {
+    next(err)
   }
 }

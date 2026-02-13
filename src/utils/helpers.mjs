@@ -190,3 +190,7 @@ export const maskPhone = (phone)=>{
   if (!phone) return null
   return phone.slice(0, 3) + "****" + phone.slice(-2)
 }
+//transition
+export function canTransition(current, next) {
+  return allowedTransitions[current]?.includes(next)
+}

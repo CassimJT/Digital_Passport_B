@@ -1,0 +1,8 @@
+export const allowedTransitions = {
+  DRAFT: ["IN_PROGRESS", "SUBMITTED"],
+  IN_PROGRESS: ["SUBMITTED"],
+  SUBMITTED: ["UNDER_REVIEW"],
+  UNDER_REVIEW: ["APPROVED", "REJECTED"],
+  APPROVED: [],
+  REJECTED: [],
+}

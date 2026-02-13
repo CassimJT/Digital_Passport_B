@@ -64,4 +64,4 @@ const imigration = new Schema({
     }
 });
 
-export default model("Imigration", imigration);
+export default model("Immigration", imigration);
