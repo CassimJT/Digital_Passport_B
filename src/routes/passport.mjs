@@ -9,7 +9,11 @@ import {
     createApplication,
     updateApplication,
     fetchApplication,
-    submitApplication 
+    submitApplication,
+    fetchApplicationsForReview,
+    startReview,
+    approveApplication,
+    rejectApplication
 } from '../controllers/passportController.mjs';
 import { authenticateJWT } from '../middleware/authMiddleware.mjs';
 import { checkRole } from '../middleware/roleMiddleware.mjs';
@@ -43,5 +47,34 @@ router.post(
   checkRole(["client"]),
   submitApplication
 )
+
+router.get(
+  "/admin/applications?status=SUBMITTED",
+  authenticateJWT,
+  checkRole(["officer", "admin"]),
+  fetchApplicationsForReview
+)
+
+router.post(
+  "/admin/applications/:id/start-review",
+  authenticateJWT,
+  checkRole(["officer", "admin"]),
+  startReview
+)
+
+router.post(
+  "/admin/applications/:id/approve",
+  authenticateJWT,
+  checkRole(["officer", "admin"]),
+  approveApplication
+)
+
+router.post(
+  "/admin/applications/:id/reject",
+  authenticateJWT,
+  checkRole(["officer", "admin"]),
+  rejectApplication
+)
+
 
 export default router;
