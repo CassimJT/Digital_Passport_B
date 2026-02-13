@@ -139,6 +139,23 @@ export const fetchApplicationsForReview = async (req, res, next) => {
   }
 }
 
+export const fetchApplications = async (res, next) => {
+  try {
+        const allApplications = await Application.find()
+          if(!allApplications){
+            return res.status(404).json({
+                  status: "failed",
+                  message: "Not found ,failed to retrieve all applications"})
+          }
+          return res.status(200).json({
+                status: "success",
+                data: allApplications
+            })
+        } catch (error) {
+            next(error)
+        }
+  }
+
 // Start application review
 export const startReview = async (req, res, next) => {
   try {
