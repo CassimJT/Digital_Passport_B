@@ -51,6 +51,7 @@ router.post(
 
 router.get(
   "/admin/applications",
+
   authenticateJWT,
   checkRole(["officer", "admin"]),
   fetchApplications
@@ -58,9 +59,10 @@ router.get(
 
 router.get(
   "/admin/applications?status=SUBMITTED",
+
   authenticateJWT,
   checkRole(["officer", "admin"]),
-  fetchApplicationsForReview
+  fetchApplicationsForReview  
 )
 
 router.post(
@@ -83,6 +85,5 @@ router.post(
   checkRole(["officer", "admin"]),
   rejectApplication
 )
-
 
 export default router;
