@@ -37,7 +37,7 @@ router.put(
 router.get(
   "/applications/:id",
   authenticateJWT,
-  checkRole(["client"]),
+  checkRole(["admin", "superadmin","officer"]),
   fetchApplication
 )
 
@@ -51,8 +51,8 @@ router.post(
 router.get(
   "/admin/applications",
   authenticateJWT,
-  checkRole(["officer", "admin"]),
-  fetchApplicationsForReview  
+  checkRole(["officer", "admin", "superadmin"]),
+  fetchApplicationsForReview
 )
 
 router.post(

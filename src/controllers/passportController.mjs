@@ -146,7 +146,6 @@ export const fetchApplicationsForReview = async (req, res, next) => {
     const [applications, total] = await Promise.all([
       Application.find({ status })
         .populate("applicant", "name email")
-        .populate("reviewer", "name email")
         .sort({ submittedAt: -1, createdAt: -1 })
         .skip(skip)
         .limit(limit),
