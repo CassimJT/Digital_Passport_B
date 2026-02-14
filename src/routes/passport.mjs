@@ -37,7 +37,7 @@ router.put(
 router.get(
   "/applications/:id",
   authenticateJWT,
-  checkRole(["admin", "superadmin","officer"]),
+  checkRole(["client"]),
   fetchApplication
 )
 
