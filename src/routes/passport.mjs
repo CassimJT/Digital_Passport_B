@@ -49,8 +49,7 @@ router.post(
 )
 
 router.get(
-  "/admin/applications?status=SUBMITTED",
-
+  "/admin/applications",
   authenticateJWT,
   checkRole(["officer", "admin", "superadmin"]),
   fetchApplicationsForReview
