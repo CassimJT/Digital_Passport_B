@@ -50,14 +50,6 @@ router.post(
 )
 
 router.get(
-  "/admin/applications",
-
-  authenticateJWT,
-  checkRole(["officer", "admin"]),
-  fetchApplications
-)
-
-router.get(
   "/admin/applications?status=SUBMITTED",
 
   authenticateJWT,
