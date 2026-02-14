@@ -140,7 +140,7 @@ export const promoteUser = async (req, res, next) => {
     const userId = req.params.id
     const { role } = req.body
 
-    const allowedRoles = ["admin", "office", "client"]
+    const allowedRoles = ["admin", "officer", "client"]
 
     if (!allowedRoles.includes(role)) {
       return res.status(400).json({

@@ -167,7 +167,8 @@ export const fetchApplicationsForReview = async (req, res, next) => {
   }
 }
 
-// Start application review (Atomic version)
+
+// Start application review
 export const startReview = async (req, res, next) => {
   try {
     const application = await Application.findOneAndUpdate(

@@ -13,7 +13,7 @@ import {
     fetchApplicationsForReview,
     startReview,
     approveApplication,
-    rejectApplication
+    rejectApplication,
 } from '../controllers/passportController.mjs';
 import { authenticateJWT } from '../middleware/authMiddleware.mjs';
 import { checkRole } from '../middleware/roleMiddleware.mjs';
@@ -49,7 +49,8 @@ router.post(
 )
 
 router.get(
-  "/admin/applications",
+  "/admin/applications?status=SUBMITTED",
+
   authenticateJWT,
   checkRole(["officer", "admin", "superadmin"]),
   fetchApplicationsForReview
