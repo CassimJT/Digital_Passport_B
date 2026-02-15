@@ -79,7 +79,7 @@ export const fetchApplication = async (req, res, next) => {
     const application = await Application.findOne({
       _id: id,
       applicant: req.user.id,
-    }).populate("identitySession", "status verifiedAt")
+    }).populate("identitySession", "status verifiedAt",)
 
     if (!application) {
       return res.status(404).json({
@@ -145,7 +145,13 @@ export const fetchApplicationsForReview = async (req, res, next) => {
 
     const [applications, total] = await Promise.all([
       Application.find({ status })
-        .populate("applicant", "name email")
+        .populate({
+          path: 'applicant',
+          populate: {
+            path: 'nationalId',
+            model: 'NRB' 
+          }
+        })
         .sort({ submittedAt: -1, createdAt: -1 })
         .skip(skip)
         .limit(limit),
@@ -166,7 +172,6 @@ export const fetchApplicationsForReview = async (req, res, next) => {
     next(err)
   }
 }
-
 
 // Start application review
 export const startReview = async (req, res, next) => {
