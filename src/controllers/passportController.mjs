@@ -218,6 +218,7 @@ export const approveApplication = async (req, res, next) => {
   session.startTransaction()
 
   try {
+    // First update the application status
     const application = await Application.findOneAndUpdate(
       {
         _id: req.params.id,
@@ -232,7 +233,13 @@ export const approveApplication = async (req, res, next) => {
         }
       },
       { new: true, runValidators: true, session }
-    )
+    ).populate({
+      path: 'applicant',
+      populate: {
+        path: 'nationalId',
+        model: 'NRB'
+      }
+    })
 
     if (!application) {
       await session.abortTransaction()
@@ -243,50 +250,98 @@ export const approveApplication = async (req, res, next) => {
       })
     }
 
-    // Validate required fields for immigration record
-    const requiredFields = ['serviceType', 'bookletType', 'nationalId', 'height', 'placeOfBirth', 'mothersPlaceOfBirth']
-    const missingFields = requiredFields.filter(field => !application.formData[field])
+    // Get NRB data from the populated applicant
+    const nrbData = application.applicant?.nationalId
     
-    if (missingFields.length > 0) {
+    if (!nrbData) {
       await session.abortTransaction()
       session.endSession()
       return res.status(400).json({
         status: "failed",
-        message: `Missing required fields for immigration record: ${missingFields.join(', ')}`,
+        message: "Applicant NRB data not found",
       })
     }
 
-    // Create Immigration Record
+    // Validate required fields - combining formData and NRB requirements
+    const requiredFormFields = ['serviceType', 'bookletType', 'height']
+    const missingFormFields = requiredFormFields.filter(field => !application.formData[field])
+    
+    // Check if we have necessary NRB data
+    if (!nrbData.nationalId || !nrbData.placeOfBirth || !nrbData.firstName || !nrbData.surName) {
+      await session.abortTransaction()
+      session.endSession()
+      return res.status(400).json({
+        status: "failed",
+        message: "Missing required NRB data: nationalId, placeOfBirth, firstName, or surName",
+      })
+    }
+
+    if (missingFormFields.length > 0) {
+      await session.abortTransaction()
+      session.endSession()
+      return res.status(400).json({
+        status: "failed",
+        message: `Missing required fields for immigration record: ${missingFormFields.join(', ')}`,
+      })
+    }
+
     const [immigrationRecord] = await Immigration.create([{
-      client: application.applicant,
+      // Client reference
+      client: application.applicant._id,
+      // Passport details
       passportType: application.type.toLowerCase(),
       serviceType: application.formData.serviceType,
       bookletType: application.formData.bookletType,
-      nationalId: application.formData.nationalId,
+      // Personal details from NRB
+      nationalId: nrbData.nationalId,
+      firstName: nrbData.firstName,
+      middleName: nrbData.middleName || "",
+      surName: nrbData.surName,
+      dateOfBirth: nrbData.dateOfBirth,
+      sex: nrbData.sex,
+      placeOfBirth: nrbData.placeOfBirth,
+      
+      // Passport application specific fields
       height: application.formData.height,
-      placeOfBirth: application.formData.placeOfBirth,
-      mothersPlaceOfBirth: application.formData.mothersPlaceOfBirth,
+      mothersPlaceOfBirth: application.formData.mothersPlaceOfBirth || nrbData.placeOfBirth?.district || "",
       mothersMaidenName: application.formData.mothersMaidenName || "",
       fathersName: application.formData.fathersName || "",
+      mobilePhone: nrbData.mobilePhone,
+      emailAddress: nrbData.emailAddress || application.applicant.emailAddress,
+      residentialAddress: nrbData.residentialAddress,
       application: application._id,
+      payment: application.payment,
+      
       paymentStatus: "completed",
       status: "active",
       issuedAt: new Date(),
       expiryDate: new Date(Date.now() + 10 * 365 * 24 * 60 * 60 * 1000) // 10 years from now
     }], { session })
 
-    // Update application with immigration record reference
-    application.immigrationRecord = immigrationRecord._id
-    await application.save({ session })
+    if (!application.immigrationRecord) {
+      application.immigrationRecord = immigrationRecord._id
+      await application.save({ session })
+    }
 
     await session.commitTransaction()
     session.endSession()
 
+    const populatedImmigrationRecord = await Immigration.findById(immigrationRecord._id)
+      .populate('client', 'emailAddress residentialAddress')
+      .populate('application')
+      .populate('payment')
+
     return res.json({
       status: "success",
       data: {
-        application,
-        immigrationRecord
+        application: {
+          _id: application._id,
+          type: application.type,
+          status: application.status,
+          submittedAt: application.submittedAt,
+          reviewedAt: application.reviewedAt
+        },
+        immigrationRecord: populatedImmigrationRecord,
       },
     })
   } catch (err) {

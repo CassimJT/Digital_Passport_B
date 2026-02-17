@@ -25,6 +25,7 @@ const router = express.Router();
 
 // Basic Auth Routes
 router.post('/verify-otp',verifyOtp);
+router.post('/request-otp', requestOtp);
 router.post('/register', validateRequest(registerUserSchema), registerUser);
 router.post('/login', validateRequest(loginValidation), loginUser);
 router.post('/logout', logoutUser);
