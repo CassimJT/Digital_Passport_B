@@ -1,6 +1,6 @@
 import Payment from "../models/Payment.mjs";
 import { pcFetch } from "../utils/helpers.mjs";
-import Imigration from "../models/Imigration.mjs";
+import Immigration from "../models/Immigration.mjs";
 
 const WEBHOOK_SECRET = process.env.PAYCHANGU_WEBHOOK_SECRET;
 const CURRENCY = process.env.PAYCHANGU_CURRENCY || "MWK";
@@ -21,7 +21,7 @@ export const initPayment = async (req, res, next) => {
       });
     }
 
-    const findPassportData = await Imigration.findById(passportID)
+    const findPassportData = await Immigration.findById(passportID)
       .populate({
         path: "client",
         populate: {

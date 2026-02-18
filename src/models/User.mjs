@@ -14,7 +14,7 @@ const userSchema = new Schema({
 
   nationalId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: Nrb,
+    ref: "NRB",
     required: true,
     unique: true,
   },
