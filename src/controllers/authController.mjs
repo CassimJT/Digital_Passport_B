@@ -367,4 +367,36 @@ export const changePassword = async (req, res, next) => {
     next(error)
   }
 }
+//request OTP
+export const requestOtp = async (req, res, next) => {
+  try {
+    const { emailAddress } = req.validatedData
 
+    const user = await User.findOne({ emailAddress })
+    if (!user) {
+      return res.status(404).json({
+        status: "failed",
+        message: "User not found",
+      })
+    }
+
+    const otp = generateOtp()
+    await saveOtpToDatabase(user._id, otp)
+
+    const html = `
+      <h1>Malawi Immigration</h1>
+      <p>Your OTP for verification is: ${otp}</p>
+      <p>Please do not share this OTP with anyone else.</p>
+    `
+    const subject = "Immigration OTP Request"
+
+    await sendEmail(emailAddress, subject, html)
+
+    return res.status(200).json({
+      status: "success",
+      message: `OTP sent to your email address ${emailAddress}`,
+    })
+  } catch (error) {
+    next(error)
+  }
+}

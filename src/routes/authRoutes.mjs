@@ -8,7 +8,8 @@ import {
   requestPasswordReset,
   resetPassword,
   changePassword,
-  verifyOtp
+  verifyOtp,
+  requestOtp
 } from '../controllers/authController.mjs';
 import { validateRequest } from '../middleware/validateRequest.mjs';
 import { registerUserSchema } from '../utils/validators.mjs';
