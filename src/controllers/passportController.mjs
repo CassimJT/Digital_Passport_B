@@ -175,38 +175,47 @@ export const startReview = async (req, res, next) => {
     const application = await Application.findOneAndUpdate(
       {
         _id: req.params.id,
-        status: "SUBMITTED",
         $or: [
-          { reviewer: null },
-          { reviewer: { $exists: false } }
+          {
+            status: "SUBMITTED",
+            $or: [
+              { reviewer: null },
+              { reviewer: { $exists: false } }
+            ]
+          },
+          {
+            status: "UNDER_REVIEW",
+            reviewer: req.user.id
+          }
         ]
       },
       {
         $set: {
-          status: "UNDER_REVIEW",
-          reviewer: req.user.id,
-          reviewStartedAt: new Date(),
+          status: "UNDER_REVIEW",           
+          reviewer: req.user.id,            
+          reviewStartedAt: new Date(),      
           updatedAt: new Date()
         }
       },
       { new: true, runValidators: true }
-    )
+    );
 
     if (!application) {
       return res.status(400).json({
         status: "failed",
-        message: "Application not found, already under review, or not in SUBMITTED status",
-      })
+        message:"Application not found, not available for review, " +
+                "or already being reviewed by another officer",
+      });
     }
 
-    return res.json({ 
-      status: "success", 
-      data: application 
-    })
+    return res.json({
+      status: "success",
+      data: application,
+    });
   } catch (err) {
-    next(err)
+    next(err);
   }
-}
+};
 
 // Approve application (with transaction support)
 export const approveApplication = async (req, res, next) => {
