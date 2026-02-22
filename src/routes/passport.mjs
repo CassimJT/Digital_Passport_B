@@ -41,6 +41,13 @@ router.get(
   fetchApplication
 )
 
+router.get(
+  "/applications",
+  authenticateJWT,
+  checkRole(["client"]),
+  getUserApplications
+);
+
 router.post(
   "/applications/:id/submit",
   authenticateJWT,
