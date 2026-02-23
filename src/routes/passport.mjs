@@ -14,6 +14,7 @@ import {
     startReview,
     approveApplication,
     rejectApplication,
+    getUserApplications,
 } from '../controllers/passportController.mjs';
 import { authenticateJWT } from '../middleware/authMiddleware.mjs';
 import { checkRole } from '../middleware/roleMiddleware.mjs';
