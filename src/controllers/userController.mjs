@@ -13,7 +13,7 @@ export const getAllUsers = async (req,res,next)=> {
         }
         return res.status(200).json({
             status: "success",
-            message: allUsers
+            data: allUsers
         })
     } catch (error) {
         next(error)
